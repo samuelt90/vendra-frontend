@@ -29,6 +29,7 @@ export default async function StoreView({ slug }: { slug: string }) {
 
   // ✅ Datos tienda (soporta attributes o plano)
   const storeName = store?.attributes?.name ?? store?.name ?? "Tienda";
+  const StoreSlug = store?.attributes?.slug ?? store?.slug ?? slug;
   const storeDesc = store?.attributes?.description ?? store?.description ?? "";
   const storeWhatsapp = store?.attributes?.whatsapp ?? store?.whatsapp ?? "";
 
@@ -53,7 +54,7 @@ export default async function StoreView({ slug }: { slug: string }) {
         {/* Header tienda (WhatsApp-like, simple) */}
         <div className="mb-4 rounded-2xl bg-white/90 p-4 shadow-sm ring-1 ring-black/5">
   <div className="flex items-start justify-between gap-3">
-    <h1 className="text-2xl font-bold text-slate-900">{storeName}</h1>
+    <h1 className="text-2xl font-bold text-slate-900">{StoreSlug}</h1>
 
     {waLink && (
       <a
@@ -111,7 +112,7 @@ export default async function StoreView({ slug }: { slug: string }) {
                         <img
                           src={productImgUrl}
                           alt={pa?.Text || "Producto"}
-                          className="h-36 w-full object-cover sm:h-40"
+                          className="h-36 w-full object-contain sm:h-40"
                         />
                       ) : (
                         <div className="h-36 w-full sm:h-40" />

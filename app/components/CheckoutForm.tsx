@@ -29,7 +29,7 @@ export default function CheckoutForm({ store, product }: CheckoutFormProps) {
     const lineas = [
       "Hola, quiero comprar:",
       "",
-      `Tienda: ${store.name}`,
+      `Tienda: ${((store as any)?.slug ?? (store as any)?.attributes?.slug ?? store.name)}`,
       `Producto: ${product.Text}`,
       product.code ? `Código: ${product.code}` : "",
       `Cantidad: ${cantidad}`,
