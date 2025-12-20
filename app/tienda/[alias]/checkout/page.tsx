@@ -70,7 +70,7 @@ export default function CheckoutPage() {
     const lines: string[] = [];
 
     lines.push("Hola, quiero comprar:");
-    lines.push(`Tienda: ${tienda}`);
+    
     lines.push("");
 
     items.forEach((p: any) => {
