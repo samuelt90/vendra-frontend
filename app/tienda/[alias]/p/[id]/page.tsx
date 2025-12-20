@@ -59,6 +59,7 @@ export default async function ProductPage({
             documentId={a.documentId}
             Text={a.Text}
             price={a.price}
+            storeSlug={alias}
           />
 
           {/* Volver a tienda (mismo estilo de botón) */}
