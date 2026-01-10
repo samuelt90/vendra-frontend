@@ -47,3 +47,49 @@ export async function getProductById(id: string | number) {
   const json = await res.json();
   return json.data?.[0] ?? null;
 }
+
+/**
+ * ------------------------------------------------------------------
+ * UTILIDADES GENERALES STRAPI (USO TRANSVERSAL)
+ * ------------------------------------------------------------------
+ * Estas funciones NO reemplazan getStoreBySlug ni getProductById.
+ *
+ * Se usan para:
+ * - Pruebas de conexión
+ * - Endpoints genéricos (predios, vehículos, galerías)
+ * - Evitar duplicar lógica fetch
+ *
+ * Buenas prácticas:
+ * - Centralizar STRAPI_URL
+ * - No hardcodear fetch en páginas
+ * - Facilitar documentación y debugging
+ * ------------------------------------------------------------------
+ */
+
+export async function strapiFetch<T = any>(path: string): Promise<T> {
+  const url = `${STRAPI_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+
+  const res = await fetch(url, {
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Strapi error ${res.status}: ${await res.text()}`);
+  }
+
+  return res.json();
+}
+
+/**
+ * Convierte URLs relativas de Strapi Media a absolutas
+ * Ej: /uploads/img.jpg -> http://localhost:1337/uploads/img.jpg
+ */
+export function toAbsMediaUrl(url?: string | null) {
+  if (!url) return null;
+  if (url.startsWith("http")) return url;
+  return `${STRAPI_URL}${url}`;
+}
+
