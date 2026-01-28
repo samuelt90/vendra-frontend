@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getStoreBySlug } from "@/lib/strapi";
+import AssistantDemo from "./AssistantDemo";
+
 
 const STRAPI_URL =
   process.env.NEXT_PUBLIC_STRAPI_URL?.replace(/\/$/, "") || "http://localhost:1337";
@@ -80,6 +82,7 @@ export default async function StoreView({ slug }: { slug: string }) {
 </div>
 
 
+
         {/* Productos */}
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">Productos</h2>
@@ -149,6 +152,7 @@ export default async function StoreView({ slug }: { slug: string }) {
           </div>
         )}
       </div>
+      <AssistantDemo/>
     </main>
   );
 }
