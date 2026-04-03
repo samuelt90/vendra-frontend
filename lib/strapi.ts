@@ -38,7 +38,7 @@ export async function getProductById(id: string | number) {
 
 
   const res = await fetch(url, {
-    cache: "no-store",
+    next: { revalidate: 30},
     headers: { "Content-Type": "application/json" },
   });
 
