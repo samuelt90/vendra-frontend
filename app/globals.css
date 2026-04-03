@@ -9,3 +9,13 @@
 body {
   font-family: var(--font-sans);
 }
+
+@layer utilities {
+  .bg-dls-section {
+    background: linear-gradient(to right, #3eb5f1, #8f58dd, #e466c8);
+  }
+
+  .bg-dls-header {
+    background: linear-gradient(to right, #a0e7f9, #fcd1ff);
+  }
+}

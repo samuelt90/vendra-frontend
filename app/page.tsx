@@ -1,5 +1,8 @@
-import { redirect } from "next/navigation";
+"use client";
+import Landing from "./landing/App";
 
-export default function Page() {
-  redirect("/demo");
+
+
+export default function page () {
+  return <Landing />;
 }

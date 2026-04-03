@@ -2,11 +2,13 @@
 import { useAparta } from "@/app/aparta/context/ApartaContext";
 import { useState, useEffect } from "react"; // 👈 agregado
 import { useRouter, useParams } from "next/navigation";
+import Stepper from "../components/Stepper";
 
 export default function CheckoutPage() {
   const { items, clear } = useAparta();
   const router = useRouter();
   const params = useParams<{ alias: string }>();
+  const alias = params.alias;
 
   const [form, setForm] = useState({
     nombre: "",
@@ -85,12 +87,17 @@ export default function CheckoutPage() {
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(mensaje)}`;
 
     window.open(url, "_blank");
+    setTimeout(() => {
+      clear();
+      window.location.href = `/aparta/${alias}`;
+    }, 1000);
 
     clear();
   };
-
+  const currentStep: 2 | 3 = isValid ? 3 : 2;
   return (
     <main className="max-w-md mx-auto p-4">
+      <Stepper step={currentStep} />
       <div className="bg-white rounded-2xl shadow-md p-5">
         <h1 className="text-xl font-semibold text-center mb-1">
           Completar pedido

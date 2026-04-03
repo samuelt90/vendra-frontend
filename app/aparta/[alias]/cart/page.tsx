@@ -3,6 +3,7 @@
 import { useAparta } from "@/app/aparta/context/ApartaContext";
 import { useRouter, useParams } from "next/navigation";
 import { useState } from "react";
+import Stepper from "../components/Stepper";
 
 export default function CartPage() {
   const { items, removeItem } = useAparta();
@@ -24,7 +25,8 @@ export default function CartPage() {
 
   return (
     <main className="max-w-md mx-auto p-4 pb-32">
-
+      <Stepper step={1}/>
+      
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg text-sm z-50">
