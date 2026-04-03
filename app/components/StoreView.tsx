@@ -90,7 +90,7 @@ export default async function StoreView({ slug }: { slug: string }) {
 
         {products.length > 0 ? (
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {products.map((p: any) => {
+            {products.map((p: any, index:number) => {
               const pa = p?.attributes ?? p;
 
               // ✅ Imagen producto (robusta como la que ya usas)
@@ -120,7 +120,7 @@ export default async function StoreView({ slug }: { slug: string }) {
                             src={productImgUrl}
                             alt={pa?.Text || "Producto"}
                             className="absolute inset-0 h-36 w-full object-contain sm:h-40"
-                            loading="lazy"
+                            loading={index <4 ? "eager": "lazy"}
                           />
                         )}
                       </div>
