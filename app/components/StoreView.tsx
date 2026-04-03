@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getStoreBySlug } from "@/lib/strapi";
-import AssistantDemo from "./AssistantDemo";
+
 
 
 const STRAPI_URL =
@@ -110,17 +110,20 @@ export default async function StoreView({ slug }: { slug: string }) {
                 <li key={productId} className="group">
                   <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm ring-1 ring-black/5 transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
                     {/* Imagen */}
-                    <div className="mb-3 overflow-hidden rounded-xl bg-slate-100">
-                      {productImgUrl ? (
-                        <img
-                          src={productImgUrl}
-                          alt={pa?.Text || "Producto"}
-                          className="h-36 w-full object-contain sm:h-40"
-                        />
-                      ) : (
-                        <div className="h-36 w-full sm:h-40" />
-                      )}
-                    </div>
+                    <div className="mb-3 overflow-hidden rounded-xl bg-slate-100 relative">
+                        {/* Placeholder */}
+                        <div className="h-36 w-full sm:h-40 bg-slate-200 animate-pulse" />
+
+                        {/* Imagen */}
+                        {productImgUrl && (
+                          <img
+                            src={productImgUrl}
+                            alt={pa?.Text || "Producto"}
+                            className="absolute inset-0 h-36 w-full object-contain sm:h-40"
+                            loading="lazy"
+                          />
+                        )}
+                      </div>
 
                     {/* Precio + nombre */}
                     <div className="space-y-1">
@@ -152,7 +155,7 @@ export default async function StoreView({ slug }: { slug: string }) {
           </div>
         )}
       </div>
-      <AssistantDemo/>
+    
     </main>
   );
 }
