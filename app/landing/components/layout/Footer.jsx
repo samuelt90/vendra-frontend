@@ -10,7 +10,7 @@ export default function Footer() {
       <div className="max-w-5xl mx-auto">
         <h2 className="text-2xl font-bold mb-2 mt-8">¿Tienes dudas?</h2>
         <p className="mb-6 text-gray-800">
-          ¿Tienes dudas?.
+          Preguntas Frecuentes
         </p>
 
         <div className="space-y-4">

@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
@@ -21,18 +20,24 @@ export default function ApartaContainer() {
           `${STRAPI}/api/aparta-stores?filters[slug][$eq]=${params.alias}`
         );
         const storeJson = await storeRes.json();
-        setStore(storeJson.data?.[0]);
+        const storeData = storeJson.data?.[0];
 
+        setStore(storeData);
+
+        // 🔥 BLOQUE CORREGIDO (fetch filtrado por tienda)
         const prodRes = await fetch(
-          `${STRAPI}/api/aparta-products?populate=*`
+          `${STRAPI}/api/aparta-products?filters[aparta_product][id][$eq]=${storeData.id}&populate=Imagen`
         );
+
         const prodJson = await prodRes.json();
 
         const mapped = prodJson.data.map((p: any) => {
           const attrs = p.attributes || p;
 
           const imageUrl =
-            attrs.Imagen?.length > 0
+            attrs.Imagen?.data?.[0]?.attributes?.url
+              ? `${STRAPI}${attrs.Imagen.data[0].attributes.url}`
+              : attrs.Imagen?.[0]?.url
               ? `${STRAPI}${attrs.Imagen[0].url}`
               : null;
 
@@ -46,6 +51,8 @@ export default function ApartaContainer() {
         });
 
         setProducts(mapped.filter((p: any) => p.estado !== "apartado"));
+        // 🔥 FIN BLOQUE CORREGIDO
+
       } catch (err) {
         console.error(err);
       }
@@ -58,7 +65,6 @@ export default function ApartaContainer() {
 
   return (
     <main className="max-w-md mx-auto p-4">
-
       {/* HEADER */}
       <div className="bg-white rounded-2xl shadow-md p-4 mb-6 flex justify-between items-center">
         <div>
@@ -82,18 +88,17 @@ export default function ApartaContainer() {
 
       {/* GRID */}
       <div className="grid grid-cols-2 gap-3">
-
-        {products.map((product) => (
+        {products.map((product, index) => (
           <div
             key={product.documentId}
             className="bg-white rounded-2xl shadow-md p-3 transition hover:shadow-lg hover:scale-[1.02]"
           >
-
-            {/* Imagen COMPLETA */}
+            {/* Imagen */}
             {product.Image && (
               <img
                 src={product.Image}
                 className="w-full h-auto rounded-lg mb-2"
+                loading={index <4 ? "eager": "lazy"}
               />
             )}
 
@@ -118,12 +123,9 @@ export default function ApartaContainer() {
             >
               Ver detalles →
             </button>
-
           </div>
         ))}
-
       </div>
-
     </main>
   );
 }

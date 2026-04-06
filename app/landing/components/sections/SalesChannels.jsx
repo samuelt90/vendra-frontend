@@ -17,7 +17,7 @@ export default function SalesChannels() {
         <span className="text-white font-semibold">clientes</span>.
       </>
     ),
-    image:"/assets/images/logos/LiveControl.webp",
+    image:"/assets/images/logos/Livecontrol.webp",
   },
     {
   title: "Catálogo dinámico",
