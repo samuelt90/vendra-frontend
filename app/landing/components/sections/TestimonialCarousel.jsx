@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -5,8 +8,39 @@ import { Star } from "lucide-react";
 import { Quote } from "lucide-react";
 
 export default function TestimonialCarousel({ title, testimonials }) {
-  const isMobile =
-    typeof window !== "undefined" && window.innerWidth < 768;
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // 🔥 BLOQUE AGREGADO (settings)
+  const settings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+        },
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 1,
+        },
+      },
+    ],
+  };
 
   return (
     <section className="bg-dls-section py-16 px-4 text-white">
@@ -43,6 +77,7 @@ export default function TestimonialCarousel({ title, testimonials }) {
                       {testimonial.role}
                     </p>
                   </div>
+
                 </div>
               </div>
             ))}
@@ -77,6 +112,7 @@ export default function TestimonialCarousel({ title, testimonials }) {
                       {testimonial.role}
                     </p>
                   </div>
+
                 </div>
               </div>
             ))}
