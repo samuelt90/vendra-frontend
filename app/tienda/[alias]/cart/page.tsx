@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "../../../components/cart/CartProvider";
+import Stepper from "@/app/components/StepperTienda";
 
 export default function CartPage() {
   const { items, setQty, totalPrice } = useCart();
@@ -15,6 +16,7 @@ export default function CartPage() {
       <div className="mx-auto w-full max-w-md">
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="text-center">
+            <Stepper step={1} />
             <h1 className="text-2xl font-semibold text-slate-900">Carrito</h1>
             <p className="mt-1 text-sm text-slate-500">
               Revisa tu pedido antes de confirmar
