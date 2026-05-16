@@ -9,24 +9,48 @@ export default function CartPage() {
   const { items, removeItem } = useAparta();
   const router = useRouter();
   const params = useParams<{ alias: string }>();
+  const STRAPI = process.env.NEXT_PUBLIC_STRAPI_URL;
 
   const [toast, setToast] = useState("");
 
-  const handleRemove = (id: number) => {
-    removeItem(id);
-    setToast("Producto eliminado del carrito");
+  const handleRemove = async (item: any) => {
+    try {
+      await fetch(`${STRAPI}/api/aparta-products/${item.documentId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          data: {
+            estado: "disponible",
+          },
+        }),
+      });
 
-    setTimeout(() => {
-      setToast("");
-    }, 2000);
+      removeItem(item.id);
+
+      setToast("Producto eliminado. La prenda volvió a estar disponible.");
+
+      setTimeout(() => {
+        setToast("");
+      }, 2500);
+    } catch (error) {
+      console.error(error);
+
+      setToast("No se pudo liberar la prenda. Intenta de nuevo.");
+
+      setTimeout(() => {
+        setToast("");
+      }, 2500);
+    }
   };
 
   const total = items.reduce((acc, item) => acc + item.price, 0);
 
   return (
     <main className="max-w-md mx-auto p-4 pb-32">
-      <Stepper step={1}/>
-      
+      <Stepper step={1} />
+
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg text-sm z-50">
@@ -51,7 +75,6 @@ export default function CartPage() {
       {/* CARD PRINCIPAL */}
       {items.length > 0 && (
         <div className="bg-white rounded-2xl shadow-md p-5">
-
           <h1 className="text-xl font-semibold text-center mb-1">
             Carrito
           </h1>
@@ -70,7 +93,7 @@ export default function CartPage() {
                 </div>
 
                 <button
-                  onClick={() => handleRemove(item.id)}
+                  onClick={() => handleRemove(item)}
                   className="text-red-500 text-sm mt-1"
                 >
                   Eliminar
@@ -87,9 +110,7 @@ export default function CartPage() {
 
           {/* BOTÓN */}
           <button
-            onClick={() =>
-              router.push(`/aparta/${params.alias}/checkout`)
-            }
+            onClick={() => router.push(`/aparta/${params.alias}/checkout`)}
             className="w-full bg-green-600 text-white py-4 rounded-full mt-5 font-semibold"
           >
             Confirmar pedido
@@ -102,7 +123,6 @@ export default function CartPage() {
           >
             ← Seguir comprando
           </button>
-
         </div>
       )}
     </main>

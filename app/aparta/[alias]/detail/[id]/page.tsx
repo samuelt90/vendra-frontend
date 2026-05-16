@@ -13,6 +13,7 @@ export default function DetailPage() {
 
   const [product, setProduct] = useState<any>(null);
   const [openModal, setOpenModal] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex]= useState(0);
 
   const STRAPI = process.env.NEXT_PUBLIC_STRAPI_URL;
 
@@ -28,17 +29,18 @@ export default function DetailPage() {
 
       const attrs = json.data.attributes || json.data;
 
-      const imageUrl =
-        attrs.Imagen?.length > 0
-          ? `${STRAPI}${attrs.Imagen[0].url}`
-          : null;
+      const images =
+      attrs.Imagen?.length > 0
+        ? attrs.Imagen.map((img: any) => `${STRAPI}${img.url}`)
+        : [];
 
       setProduct({
         id: json.data.id,
         Text: attrs.Text,
         price: attrs.price,
         description: attrs.description,
-        Image: imageUrl,
+        Image: images[0] || null,
+        Images: images,
       });
     };
 
@@ -81,13 +83,52 @@ export default function DetailPage() {
       {/* CARD PRINCIPAL */}
       <div className="bg-white rounded-2xl shadow-md p-5 text-center">
 
-        {/* Imagen */}
-        {product.Image && (
-          <img
-            src={product.Image}
-            className="w-full h-auto rounded-xl mb-4"
-          />
-        )}
+{/* Imagen / Galería */}
+{product.Images?.length > 0 && (
+  <div className="relative mb-4 overflow-hidden rounded-xl bg-gray-50">
+    <div className="flex h-96 items-center justify-center bg-gray-50">
+      <img
+        src={product.Images[currentImageIndex]}
+        alt={product.Text}
+        className="max-h-full max-w-full object-contain"
+      />
+    </div>
+
+    {product.Images.length > 1 && (
+      <>
+        <button
+          type="button"
+          onClick={() =>
+            setCurrentImageIndex((prev) =>
+              prev === 0 ? product.Images.length - 1 : prev - 1
+            )
+          }
+          className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/60 px-3 py-2 text-white"
+        >
+          ←
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            setCurrentImageIndex((prev) =>
+              prev === product.Images.length - 1 ? 0 : prev + 1
+            )
+          }
+          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/60 px-3 py-2 text-white"
+        >
+          →
+        </button>
+
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs text-white">
+          {currentImageIndex + 1} / {product.Images.length}
+        </div>
+      </>
+    )}
+  </div>
+)}
+
+
 
         {/* Nombre */}
         <h1 className="text-base text-gray-500 mb-1">
@@ -99,10 +140,16 @@ export default function DetailPage() {
           Q{product.price}
         </p>
 
-        {/* Descripción */}
-        <p className="text-sm text-gray-500 mb-5">
-          {product.description}
-        </p>
+       {/* Descripción */}
+        <div className="mb-6 rounded-2xl bg-gray-50 p-4 text-left">
+          <h2 className="mb-3 text-sm font-bold text-gray-900">
+            Descripción
+          </h2>
+
+          <p className="whitespace-pre-line text-sm leading-6 text-gray-700">
+            {product.description}
+          </p>
+        </div>
 
         {/* BOTÓN PRINCIPAL */}
         <button
