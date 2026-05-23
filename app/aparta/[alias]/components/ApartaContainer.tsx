@@ -3,6 +3,10 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Dumbbell, BadgeCheck, Recycle } from "lucide-react";
 import EditorialCarousel from "./EditorialCarousel";
+import { getImageUrl } from "@/lib/getImageUrl";
+import Image from "next/image";
+
+
 
 export default function ApartaContainer() {
   const params = useParams<{ alias: string }>();
@@ -118,18 +122,15 @@ const toggleFilterSection = (section: "tipo" | "talla" | "genero" | "estado") =>
 
   if (!store) return <div className="p-4">Cargando...</div>;
 
-const coverUrl =
-  store.cover?.url
-    ? `${STRAPI}${store.cover.url}`
-    : store.attributes?.cover?.data?.attributes?.url
-    ? `${STRAPI}${store.attributes.cover.data.attributes.url}`
-    : null;
+const coverUrl = store.cover?.url
+  ? getImageUrl(store.cover.url)
+  : store.attributes?.cover?.data?.attributes?.url
+  ? getImageUrl(store.attributes.cover.data.attributes.url)
+  : null;
 
-
-const logoUrl =
-  store.logo?.[0]?.url
-    ? `${STRAPI}${store.logo[0].url}`
-    : null;
+const logoUrl = store.logo?.[0]?.url
+  ? getImageUrl(store.logo[0].url)
+  : null;
 
 
 
@@ -191,11 +192,13 @@ const logoUrl =
   {/* PORTADA */}
   {coverUrl && (
     <div className="mb-4 overflow-hidden rounded-2xl shadow-md">
-      <img
-        src={coverUrl}
-        alt={store.name || "Portada de tienda"}
-        className="h-40 w-full object-contain bg-black sm:h-52"
-      />
+            <Image
+          src={coverUrl}
+          alt={store.name || "Portada de tienda"}
+          width={1200}
+          height={400}
+          className="h-40 w-full object-contain bg-black sm:h-52"
+        />
     </div>
   )}
 
@@ -206,9 +209,11 @@ const logoUrl =
     {/* LOGO + TEXTO */}
     <div className="flex items-center gap-4 md:gap-5">
       {logoUrl && (
-        <img
+        <Image
           src={logoUrl}
           alt={store.name}
+          width={300}
+          height={300}
           className="h-24 w-24 shrink-0 rounded-full object-cover md:h-32 md:w-32"
         />
       )}
@@ -658,14 +663,18 @@ const logoUrl =
             key={product.documentId}
             className="bg-white rounded-2xl shadow-md p-3 transition hover:shadow-lg hover:scale-[1.02]"
           >
-            {/* Imagen */}
+            
+           {/* Imagen */}
             {product.Image && (
               <div className="mb-3 flex h-56 items-center justify-center overflow-hidden rounded-2xl bg-gray-50">
-                <img
-                  src={product.Image}
-                  className="h-full w-full object-contain"
-                  loading={index < 4 ? "eager" : "lazy"}
-                />
+               <Image
+                src={getImageUrl(product.Image)}
+                alt={product.Text}
+                width={600}
+                height={800}
+                className="h-full w-full object-contain"
+                priority={index < 4}
+              />
               </div>
             )}
 

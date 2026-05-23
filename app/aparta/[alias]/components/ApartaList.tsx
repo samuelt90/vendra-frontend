@@ -1,4 +1,5 @@
 import ApartaCard from "./ApartaCard";
+import { getStrapiMediaUrl } from "@/lib/getStrapiMediaUrl";
 
 type Product = {
   documentId: string;
@@ -12,12 +13,16 @@ export default function ApartaList({ products }: { products: Product[] }) {
     return <div className="text-center py-10">Sin productos</div>;
   }
 
+  const normalizedProducts = products.map((p) => ({
+    ...p,
+    Image: getStrapiMediaUrl(p.Image),
+  }));
+
   return (
     <div className="grid grid-cols-2 gap-4">
-      {products.map((p) => (
+      {normalizedProducts.map((p) => (
         <ApartaCard key={p.documentId} product={p} />
       ))}
     </div>
   );
 }
-

@@ -1,12 +1,18 @@
 // app/predios/[slug]/page.tsx
 
+import VehicleCard from "./components/VehicleCard";
+
 type PageProps = {
   params: { slug: string };
 };
 
+const STRAPI_URL =
+  process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
+
 function blocksToPlainText(blocks: any): string {
   try {
     if (!Array.isArray(blocks)) return "";
+
     return blocks
       .map((b: any) => {
         const children = Array.isArray(b?.children) ? b.children : [];
@@ -19,16 +25,12 @@ function blocksToPlainText(blocks: any): string {
   }
 }
 
-const STRAPI_URL = process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
-
 function safeStr(v: any, fallback = ""): string {
   if (v === null || v === undefined) return fallback;
   return String(v);
 }
 
 function normalizeStrapiEntity(item: any) {
-  // Strapi v4: { id, attributes: {...} }
-  // Strapi v5: { documentId, ...fields }
   return item?.attributes ?? item ?? null;
 }
 
@@ -40,16 +42,16 @@ function normalizeCollection(raw: any): any[] {
 }
 
 export default async function PredioPage({ params }: PageProps) {
-  // ✅ IMPORTANTE: Mantengo tu forma (params como Promise en tu setup)
   const { slug } = await (params as any);
 
-  // Guard simple (para que NO consulte con undefined)
   if (!slug) {
     return (
-      <div style={{ padding: 16 }}>
-        <h1>Predio</h1>
-        <p>Slug inválido (undefined).</p>
-      </div>
+      <main className="min-h-screen bg-slate-50 p-4">
+        <div className="mx-auto max-w-5xl rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h1 className="text-2xl font-black text-slate-950">Predio</h1>
+          <p className="mt-2 text-sm text-slate-600">Slug inválido.</p>
+        </div>
+      </main>
     );
   }
 
@@ -68,143 +70,36 @@ export default async function PredioPage({ params }: PageProps) {
 
   const res = await fetch(url, { cache: "no-store" });
 
-  // ===== UX Styles (sin tocar tu lógica) =====
-  const css = `
-    .page {
-      min-height: 100vh;
-      padding: 18px 12px 40px;
-      background:
-        radial-gradient(1200px 600px at 10% 0%, rgba(59,130,246,0.16), transparent 55%),
-        radial-gradient(900px 480px at 90% 10%, rgba(16,185,129,0.14), transparent 50%),
-        #f6f7fb;
-    }
-    .container { max-width: 980px; margin: 0 auto; }
-    .topbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px; }
-    .brand { display:flex; align-items:center; gap:10px; user-select:none; }
-    .dot {
-      width:34px; height:34px; border-radius:12px;
-      background: linear-gradient(135deg, #3b82f6, #10b981);
-      box-shadow: 0 10px 18px rgba(0,0,0,0.12);
-    }
-    .brandText { font-weight:900; letter-spacing:.2px; }
-    .card {
-      background: rgba(255,255,255,0.92);
-      border: 1px solid rgba(0,0,0,0.08);
-      border-radius: 20px;
-      box-shadow: 0 16px 30px rgba(0,0,0,0.08);
-      overflow: hidden;
-    }
-    .hero { padding: 18px 16px; }
-    .title { margin:0; font-size:22px; line-height:1.15; font-weight:900; letter-spacing:-0.3px; }
-    .subtitle { margin:6px 0 0; opacity:.72; font-size:13.5px; line-height:1.35; }
-    .chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-    .chip {
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px; border-radius:999px;
-      background: rgba(0,0,0,0.04);
-      border: 1px solid rgba(0,0,0,0.06);
-      font-size:12.5px; line-height:1;
-    }
-    .chipLabel { font-weight:900; opacity:.75; }
-    .chipValue { font-weight:800; }
-    .descLabel { font-weight:900; font-size:13.5px; margin:14px 0 6px; opacity:.8; }
-    .descBox {
-      padding:12px; border-radius:16px;
-      background: rgba(0,0,0,0.03);
-      border: 1px solid rgba(0,0,0,0.08);
-      white-space: pre-wrap;
-      line-height:1.45; font-size:14px; opacity:.92;
-    }
-    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
-    .btn {
-      text-decoration:none;
-      display:inline-flex; align-items:center; justify-content:center;
-      padding: 12px 14px; border-radius: 14px;
-      font-weight: 900;
-      border: 1px solid rgba(0,0,0,0.10);
-    }
-    .btnPrimary {
-      color:white;
-      background: linear-gradient(135deg, #25D366, #16a34a);
-      box-shadow: 0 12px 18px rgba(22,163,74,0.24);
-      border-color: rgba(0,0,0,0.06);
-    }
-    .btnSecondary {
-      color:#111827;
-      background: rgba(255,255,255,0.85);
-      box-shadow: 0 10px 16px rgba(0,0,0,0.06);
-    }
-    .btnDisabled { opacity:.45; filter:grayscale(.4); pointer-events:none; box-shadow:none; }
-    .section {
-      padding: 14px 16px 18px;
-      border-top: 1px solid rgba(0,0,0,0.07);
-      background: linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,255,255,0.92));
-    }
-    .sectionHead { display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
-    .h2 { margin:0; font-size:16px; font-weight:900; letter-spacing:-0.2px; }
-    .badge {
-      font-size:12px; font-weight:900;
-      padding:6px 10px; border-radius:999px;
-      background: rgba(59,130,246,0.10);
-      border: 1px solid rgba(59,130,246,0.18);
-      color: #1d4ed8;
-    }
-    .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:14px; width:100%; }
-    .wrapCard {
-      border-radius:18px; overflow:hidden;
-      background: rgba(255,255,255,0.96);
-      border: 1px solid rgba(0,0,0,0.08);
-      box-shadow: 0 12px 22px rgba(0,0,0,0.07);
-      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-    @media (hover:hover) {
-      .wrapCard:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 18px 34px rgba(0,0,0,0.10);
-        border-color: rgba(0,0,0,0.14);
-      }
-    }
-    .empty {
-      opacity:.72; font-size:14px; margin:0;
-      padding:12px; border-radius:14px;
-      background: rgba(0,0,0,0.03);
-      border: 1px dashed rgba(0,0,0,0.16);
-    }
-    .footer { margin-top:14px; opacity:.6; font-size:12.5px; text-align:center; }
-    .code {
-      margin-top:10px; padding:12px; border-radius:14px;
-      background: rgba(0,0,0,0.05);
-      border: 1px solid rgba(0,0,0,0.08);
-      overflow-x:auto; font-size:12px; line-height:1.35;
-    }
-  `;
-
   if (!res.ok) {
     return (
-      <div className="page">
-        <style>{css}</style>
-        <div className="container">
-          <div className="topbar">
-            <div className="brand">
-              <div className="dot" />
-              <div className="brandText">Vendra</div>
+      <main className="min-h-screen bg-slate-50 p-4">
+        <div className="mx-auto max-w-5xl">
+          <header className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-emerald-500 shadow-md" />
+              <div className="font-black tracking-wide text-slate-950">
+                Vendra
+              </div>
             </div>
-            <div style={{ fontSize: 12.5, opacity: 0.65, fontWeight: 900 }}>
+
+            <div className="text-xs font-black text-slate-500">
               Demo · Predios
             </div>
-          </div>
+          </header>
 
-          <div className="card">
-            <div className="hero">
-              <h1 className="title">Predio</h1>
-              <p className="subtitle">
-                Error Strapi: <strong>{res.status}</strong>
-              </p>
-              <pre className="code">{url}</pre>
-            </div>
-          </div>
+          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h1 className="text-2xl font-black text-slate-950">Predio</h1>
+
+            <p className="mt-2 text-sm text-slate-600">
+              Error Strapi: <strong>{res.status}</strong>
+            </p>
+
+            <pre className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-100 p-4 text-xs leading-relaxed text-slate-700">
+              {url}
+            </pre>
+          </section>
         </div>
-      </div>
+      </main>
     );
   }
 
@@ -214,94 +109,113 @@ export default async function PredioPage({ params }: PageProps) {
 
   if (!data) {
     return (
-      <div className="page">
-        <style>{css}</style>
-        <div className="container">
-          <div className="topbar">
-            <div className="brand">
-              <div className="dot" />
-              <div className="brandText">Vendra</div>
+      <main className="min-h-screen bg-slate-50 p-4">
+        <div className="mx-auto max-w-5xl">
+          <header className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-emerald-500 shadow-md" />
+              <div className="font-black tracking-wide text-slate-950">
+                Vendra
+              </div>
             </div>
-            <div style={{ fontSize: 12.5, opacity: 0.65, fontWeight: 900 }}>
+
+            <div className="text-xs font-black text-slate-500">
               Demo · Predios
             </div>
-          </div>
+          </header>
 
-          <div className="card">
-            <div className="hero">
-              <h1 className="title">Predio no encontrado</h1>
-              <p className="subtitle">
-                No se encontró predio para slug: <strong>{safeStr(slug)}</strong>
-              </p>
-              <pre className="code">{url}</pre>
-            </div>
-          </div>
+          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h1 className="text-2xl font-black text-slate-950">
+              Predio no encontrado
+            </h1>
+
+            <p className="mt-2 text-sm text-slate-600">
+              No se encontró predio para slug:{" "}
+              <strong>{safeStr(slug)}</strong>
+            </p>
+
+            <pre className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-slate-100 p-4 text-xs leading-relaxed text-slate-700">
+              {url}
+            </pre>
+          </section>
         </div>
-      </div>
+      </main>
     );
   }
 
   const descripcionPlano = blocksToPlainText((data as any)?.descripcion);
 
-  // vehiculos
   const vehiculosRaw = (data as any)?.vehiculos;
   const vehiculosArr = normalizeCollection(vehiculosRaw)
     .map(normalizeStrapiEntity)
     .filter(Boolean);
 
-  // WhatsApp link (sin JS)
   const whatsapp = safeStr((data as any)?.whatsapp, "").replace(/\D/g, "");
   const waLink = whatsapp ? `https://wa.me/502${whatsapp}` : "";
-
-  // Tu VehicleCard
-  const VehicleCard = (await import("./components/VehicleCard")).default;
 
   const predioTitle = safeStr((data as any)?.slug, "Predio");
   const direccion = safeStr((data as any)?.direccion, "");
   const desc = descripcionPlano || "(sin descripción)";
 
   return (
-    <div className="page">
-      <style>{css}</style>
-
-      <div className="container">
-        <div className="topbar">
-          <div className="brand">
-            <div className="dot" />
-            <div className="brandText">Vendra</div>
+    <main className="min-h-screen bg-slate-50 px-3 py-5 sm:px-4 sm:py-8">
+      <div className="mx-auto max-w-5xl">
+        <header className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-emerald-500 shadow-md" />
+            <div className="font-black tracking-wide text-slate-950">
+              Vendra
+            </div>
           </div>
-          <div style={{ fontSize: 12.5, opacity: 0.65, fontWeight: 900 }}>
+
+          <div className="text-xs font-black text-slate-500">
             Demo · Predios
           </div>
-        </div>
+        </header>
 
-        <div className="card">
-          <div className="hero">
-            <h1 className="title">{predioTitle}</h1>
-            <p className="subtitle">
+        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg">
+          <div className="p-5 sm:p-6">
+            <h1 className="text-2xl font-black leading-tight tracking-tight text-slate-950">
+              {predioTitle}
+            </h1>
+
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
               Información del predio y catálogo de vehículos disponible.
             </p>
 
-            <div className="chips">
-              <div className="chip">
-                <span className="chipLabel">WhatsApp</span>
-                <span className="chipValue">
+            <div className="mt-4 flex flex-wrap gap-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-xs">
+                <span className="font-black text-slate-600">WhatsApp</span>
+                <span className="font-extrabold text-slate-900">
                   {whatsapp ? `+502 ${whatsapp}` : "No definido"}
                 </span>
               </div>
 
-              <div className="chip">
-                <span className="chipLabel">Dirección</span>
-                <span className="chipValue">{direccion || "No definida"}</span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-3 py-2 text-xs">
+                <span className="font-black text-slate-600">Dirección</span>
+                <span className="font-extrabold text-slate-900">
+                  {direccion || "No definida"}
+                </span>
               </div>
             </div>
 
-            <div className="descLabel">Descripción</div>
-            <div className="descBox">{desc}</div>
+            <div className="mt-5">
+              <div className="mb-2 text-sm font-black text-slate-700">
+                Descripción
+              </div>
 
-            <div className="actions">
+              <div className="whitespace-pre-wrap rounded-2xl border border-slate-200 bg-slate-100 p-4 text-sm leading-relaxed text-slate-700">
+                {desc}
+              </div>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-3">
               <a
-                className={`btn btnPrimary ${waLink ? "" : "btnDisabled"}`}
+                className={`inline-flex items-center justify-center rounded-2xl border px-4 py-3 text-sm font-black transition ${
+                  waLink
+                    ? "border-green-700 bg-green-600 text-white shadow-lg shadow-green-600/20 hover:bg-green-700"
+                    : "pointer-events-none border-slate-200 bg-slate-100 text-slate-400"
+                }`}
                 href={waLink || "#"}
                 target={waLink ? "_blank" : undefined}
                 rel={waLink ? "noopener noreferrer" : undefined}
@@ -310,39 +224,52 @@ export default async function PredioPage({ params }: PageProps) {
                 Contactar por WhatsApp
               </a>
 
-              <a className="btn btnSecondary" href="#vehiculos">
+              <a
+                className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-900 shadow-sm transition hover:bg-slate-50"
+                href="#vehiculos"
+              >
                 Ver vehículos
               </a>
             </div>
           </div>
 
-          <div id="vehiculos" className="section">
-            <div className="sectionHead">
-              <h2 className="h2">Vehículos</h2>
-              <div className="badge">
-                {vehiculosArr.length} disponible{vehiculosArr.length === 1 ? "" : "s"}
+          <div
+            id="vehiculos"
+            className="border-t border-slate-200 bg-white/80 p-5 sm:p-6"
+          >
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-lg font-black tracking-tight text-slate-950">
+                Vehículos
+              </h2>
+
+              <div className="rounded-full border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-black text-blue-700">
+                {vehiculosArr.length} disponible
+                {vehiculosArr.length === 1 ? "" : "s"}
               </div>
             </div>
 
             {vehiculosArr.length === 0 ? (
-              <p className="empty">Este predio no tiene vehículos por ahora.</p>
+              <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
+                Este predio no tiene vehículos por ahora.
+              </p>
             ) : (
-              <div className="grid">
+              <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
                 {vehiculosArr.map((v: any) => (
                   <div
-                    key={v?.id ?? v?.documentId ?? v?.titulo ?? Math.random()}
-                    className="wrapCard"
+                    key={v?.id ?? v?.documentId ?? v?.titulo}
+                    className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
                   >
-                    <VehicleCard vehiculo={v} slug={safeStr((data as any)?.slug, safeStr(slug))} />
+                    <VehicleCard
+                      vehiculo={v}
+                      slug={safeStr((data as any)?.slug, safeStr(slug))}
+                    />
                   </div>
                 ))}
               </div>
             )}
           </div>
-        </div>
-
-       
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

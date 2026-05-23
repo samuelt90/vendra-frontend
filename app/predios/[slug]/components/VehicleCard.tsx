@@ -2,26 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import Image from "next/image";
+import { getImageUrl } from "@/lib/getImageUrl";
+import { getStrapiMediaUrl } from "@/lib/getStrapiMediaUrl";
 
 type Props = {
   vehiculo: any;
   slug: string;
 };
-
-const STRAPI_URL =
-  process.env.NEXT_PUBLIC_STRAPI_URL ?? "http://localhost:1337";
-
-function mediaToUrl(file: any): string | null {
-  if (!file) return null;
-
-  const direct = file?.url as string | undefined;
-  if (direct) return direct.startsWith("http") ? direct : `${STRAPI_URL}${direct}`;
-
-  const thumb = file?.formats?.thumbnail?.url as string | undefined;
-  if (thumb) return thumb.startsWith("http") ? thumb : `${STRAPI_URL}${thumb}`;
-
-  return null;
-}
 
 export default function VehicleCard({ vehiculo, slug }: Props) {
   const router = useRouter();
@@ -47,7 +35,7 @@ export default function VehicleCard({ vehiculo, slug }: Props) {
   // cada foto puede venir plano (v5) o en .attributes (v4)
   const fotosNorm = useMemo(() => {
     return fotosArr.map((f: any) => f?.attributes ?? f).filter(Boolean);
-  }, [galeriaRaw]); // mantenemos tu intención: recalcular si cambia galería
+  }, [galeriaRaw]);
 
   const fotosCount = fotosNorm.length;
 
@@ -56,9 +44,9 @@ export default function VehicleCard({ vehiculo, slug }: Props) {
 
   // si cambia la cantidad de fotos, evita idx fuera de rango
   const safeIdx = fotosCount === 0 ? 0 : Math.min(idx, fotosCount - 1);
-
   const currentPhoto = fotosCount > 0 ? fotosNorm[safeIdx] : null;
-  const imgUrl = mediaToUrl(currentPhoto);
+
+  const imgUrl = getImageUrl(getStrapiMediaUrl(currentPhoto));
 
   function prev() {
     if (fotosCount <= 1) return;
@@ -73,258 +61,131 @@ export default function VehicleCard({ vehiculo, slug }: Props) {
   // ===== Detalles =====
   const [showDetails, setShowDetails] = useState(false);
 
-  // ===== Styles (solo UX visual) =====
-  const cardStyle: React.CSSProperties = {
-    border: "1px solid #e6e6e6",
-    borderRadius: 14,
-    padding: 14,
-    background: "#ffffff",
-    boxShadow: "0 6px 18px rgba(0,0,0,0.06)",
-  };
-
-  const titleStyle: React.CSSProperties = {
-    fontWeight: 900,
-    fontSize: 16,
-    letterSpacing: 0.2,
-  };
-
-  const subStyle: React.CSSProperties = {
-    opacity: 0.8,
-    marginTop: 3,
-    fontSize: 13,
-  };
-
-  const metaStyle: React.CSSProperties = {
-    marginTop: 10,
-    fontSize: 13,
-    opacity: 0.8,
-  };
-
-  // Contenedor centrado para imagen 
-  const mediaWrapStyle: React.CSSProperties = {
-    marginTop: 12,
-    position: "relative",
-    borderRadius: 12,
-    background: "#f6f7f9",
-    border: "1px solid #ececec",
-    padding: 12,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 260,
-    overflow: "hidden",
-  };
-
-  const imgStyle: React.CSSProperties = {
-    width: "100%",
-    maxWidth: 520,
-    maxHeight: 360,
-    height: "auto",
-    display: "block",
-    margin: "0 auto",
-    objectFit: "contain",
-    borderRadius: 10,
-  };
-
-  const arrowBtnStyle = (disabled: boolean): React.CSSProperties => ({
-    position: "absolute",
-    top: "50%",
-    transform: "translateY(-50%)",
-    width: 38,
-    height: 38,
-    borderRadius: 999,
-    border: "1px solid #d9d9d9",
-    background: "#ffffff",
-    cursor: disabled ? "not-allowed" : "pointer",
-    opacity: disabled ? 0.45 : 1,
-    fontSize: 18,
-    fontWeight: 900,
-    boxShadow: "0 6px 14px rgba(0,0,0,0.10)",
-    display: "grid",
-    placeItems: "center",
-    userSelect: "none",
-  });
-
-  const indicatorStyle: React.CSSProperties = {
-    position: "absolute",
-    bottom: 10,
-    left: 12,
-    padding: "5px 10px",
-    borderRadius: 999,
-    border: "1px solid rgba(0,0,0,0.08)",
-    background: "rgba(255,255,255,0.92)",
-    fontSize: 12,
-    fontWeight: 800,
-    opacity: 0.95,
-  };
-
-  // Botones con color diferente al contenedor
-  const btnPrimary: React.CSSProperties = {
-    padding: "11px 12px",
-    borderRadius: 12,
-    border: "1px solid #0a7a3f",
-    background: "#11a956",
-    color: "#fff",
-    cursor: "pointer",
-    fontWeight: 900,
-    flex: 1,
-    boxShadow: "0 10px 18px rgba(17,169,86,0.20)",
-  };
-
-  const btnSecondary: React.CSSProperties = {
-    padding: "11px 12px",
-    borderRadius: 12,
-    border: "1px solid #d0d5dd",
-    background: "#f2f4f7",
-    color: "#111827",
-    cursor: "pointer",
-    fontWeight: 900,
-    flex: 1,
-  };
-
-  const btnOutline: React.CSSProperties = {
-    padding: "11px 12px",
-    borderRadius: 12,
-    border: "1px solid #cbd5e1",
-    background: "#ffffff",
-    color: "#0f172a",
-    cursor: "pointer",
-    fontWeight: 900,
-    width: "100%",
-  };
-
-  const detailsCardStyle: React.CSSProperties = {
-    marginTop: 10,
-    border: "1px solid #e9e9e9",
-    borderRadius: 12,
-    padding: 12,
-    background: "#fbfbfc",
-  };
-
-  const detailsGridStyle: React.CSSProperties = {
-    display: "grid",
-    gap: 10,
-    fontSize: 13,
-  };
-
-  const labelStyle: React.CSSProperties = { opacity: 0.7, fontWeight: 800 };
 
   return (
-    <div style={cardStyle}>
-      <div style={titleStyle}>{titulo}</div>
-      <div style={subStyle}>{marca}</div>
+  <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-md">
+    <div className="text-base font-black tracking-wide text-gray-950">
+      {titulo}
+    </div>
 
-      <div style={metaStyle}>Fotos en galería: {fotosCount}</div>
+    <div className="mt-1 text-sm text-gray-600">
+      {marca}
+    </div>
 
-      {/* IMAGEN + FLECHAS */}
-      <div style={mediaWrapStyle}>
-        {imgUrl ? (
-          <img
-            src={imgUrl}
-            alt={currentPhoto?.alternativeText ?? titulo ?? "vehículo"}
-            style={imgStyle}
-          />
-        ) : (
-          <div style={{ fontSize: 13, opacity: 0.7 }}>(sin imagen)</div>
-        )}
+    <div className="mt-3 text-sm text-gray-600">
+      Fotos en galería: {fotosCount}
+    </div>
 
-        {/* Flecha izquierda */}
-        <button
-          type="button"
-          onClick={prev}
-          aria-label="Anterior"
-          style={{
-            ...arrowBtnStyle(fotosCount <= 1),
-            left: 10,
-          }}
-        >
-          ‹
-        </button>
+    {/* IMAGEN + FLECHAS */}
+    <div className="relative mt-3 flex min-h-65 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-gray-50 p-3">
+      {imgUrl ? (
+        <Image
+          src={imgUrl}
+          alt={currentPhoto?.alternativeText ?? titulo ?? "vehículo"}
+          width={900}
+          height={600}
+          className="mx-auto h-auto max-h-90 w-full max-w-130 rounded-xl object-contain"
+        />
+      ) : (
+        <div className="text-sm text-gray-500">(sin imagen)</div>
+      )}
 
-        {/* Flecha derecha */}
-        <button
-          type="button"
-          onClick={next}
-          aria-label="Siguiente"
-          style={{
-            ...arrowBtnStyle(fotosCount <= 1),
-            right: 10,
-          }}
-        >
-          ›
-        </button>
+      {/* Flecha izquierda */}
+      <button
+        type="button"
+        onClick={prev}
+        aria-label="Anterior"
+        disabled={fotosCount <= 1}
+        className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-gray-300 bg-white text-xl font-black shadow-md transition disabled:cursor-not-allowed disabled:opacity-45"
+      >
+        ‹
+      </button>
 
-        {/* Indicador */}
-        <div style={indicatorStyle}>
-          {fotosCount === 0 ? "0/0" : `${safeIdx + 1}/${fotosCount}`}
-        </div>
-      </div>
+      {/* Flecha derecha */}
+      <button
+        type="button"
+        onClick={next}
+        aria-label="Siguiente"
+        disabled={fotosCount <= 1}
+        className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full border border-gray-300 bg-white text-xl font-black shadow-md transition disabled:cursor-not-allowed disabled:opacity-45"
+      >
+        ›
+      </button>
 
-      {/* BOTÓN: VER DETALLES */}
-      <div style={{ marginTop: 14 }}>
-        {!showDetails ? (
-          <button
-            type="button"
-            onClick={() => setShowDetails(true)}
-            style={btnOutline}
-          >
-            Ver detalles del vehículo
-          </button>
-        ) : (
-          <>
-            {/* CARD LIGERA (detalles) */}
-            <div style={detailsCardStyle}>
-              <div style={detailsGridStyle}>
-                <div>
-                  <span style={labelStyle}>■ Precio:</span>{" "}
-                  <strong>
-                    {precio ?? "(sin dato)"} {moneda ?? ""}
-                  </strong>
-                </div>
-                <div>
-                  <span style={labelStyle}>■ Modelo:</span>{" "}
-                  <strong>{modelo ?? "(sin dato)"}</strong>
-                </div>
-                <div>
-                  <span style={labelStyle}>■ Año:</span>{" "}
-                  <strong>{anio ?? "(sin dato)"}</strong>
-                </div>
-                <div>
-                  <span style={labelStyle}>■ Transmisión:</span>{" "}
-                  <strong>{transmision ?? "(sin dato)"}</strong>
-                </div>
-                <div>
-                  <span style={labelStyle}>■ Marca:</span>{" "}
-                  <strong>{marca || "(sin dato)"}</strong>
-                </div>
-              </div>
-
-              {/* Botones abajo */}
-              <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-                <button
-                  type="button"
-                  onClick={() => setShowDetails(false)}
-                  style={btnSecondary}
-                >
-                  Cerrar (x)
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    router.push(
-                      `/predios/${slug}/vehiculos/${vehiculo.documentId}/contactar`
-                    );
-                  }}
-                  style={btnPrimary}
-                >
-                  Contactar a vendedor
-                </button>
-              </div>
-            </div>
-          </>
-        )}
+      {/* Indicador */}
+      <div className="absolute bottom-3 left-3 rounded-full border border-black/10 bg-white/90 px-3 py-1 text-xs font-extrabold text-gray-900">
+        {fotosCount === 0 ? "0/0" : `${safeIdx + 1}/${fotosCount}`}
       </div>
     </div>
-  );
+
+    {/* BOTÓN: VER DETALLES */}
+    <div className="mt-4">
+      {!showDetails ? (
+        <button
+          type="button"
+          onClick={() => setShowDetails(true)}
+          className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 font-black text-slate-900 transition hover:bg-slate-50"
+        >
+          Ver detalles del vehículo
+        </button>
+      ) : (
+        <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+          <div className="grid gap-3 text-sm">
+            <div>
+              <span className="font-extrabold text-gray-500">■ Precio:</span>{" "}
+              <strong>
+                {precio ?? "(sin dato)"} {moneda ?? ""}
+              </strong>
+            </div>
+
+            <div>
+              <span className="font-extrabold text-gray-500">■ Modelo:</span>{" "}
+              <strong>{modelo ?? "(sin dato)"}</strong>
+            </div>
+
+            <div>
+              <span className="font-extrabold text-gray-500">■ Año:</span>{" "}
+              <strong>{anio ?? "(sin dato)"}</strong>
+            </div>
+
+            <div>
+              <span className="font-extrabold text-gray-500">
+                ■ Transmisión:
+              </span>{" "}
+              <strong>{transmision ?? "(sin dato)"}</strong>
+            </div>
+
+            <div>
+              <span className="font-extrabold text-gray-500">■ Marca:</span>{" "}
+              <strong>{marca || "(sin dato)"}</strong>
+            </div>
+          </div>
+
+          {/* Botones abajo */}
+          <div className="mt-4 flex gap-3">
+            <button
+              type="button"
+              onClick={() => setShowDetails(false)}
+              className="flex-1 rounded-xl border border-gray-300 bg-gray-100 px-3 py-3 font-black text-gray-900 transition hover:bg-gray-200"
+            >
+              Cerrar (x)
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                router.push(
+                  `/predios/${slug}/vehiculos/${vehiculo.documentId}/contactar`
+                );
+              }}
+              className="flex-1 rounded-xl border border-green-700 bg-green-600 px-3 py-3 font-black text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700"
+            >
+              Contactar a vendedor
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+);
 }

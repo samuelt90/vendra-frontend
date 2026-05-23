@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { getImageUrl } from "@/lib/getImageUrl";
+import Image from "next/image";
 
 type Product = {
   documentId: string;
@@ -71,9 +73,11 @@ export default function EditorialBlock({
           >
             <div className="h-72 bg-gray-50 md:h-96">
               {mainProduct.Image && (
-                <img
-                  src={mainProduct.Image}
+                <Image
+                  src={getImageUrl(mainProduct.Image)}
                   alt={mainProduct.Text}
+                  width={900}
+                  height={1200}
                   className="h-full w-full object-contain"
                 />
               )}
@@ -100,9 +104,11 @@ export default function EditorialBlock({
             >
               <div className="h-40 bg-gray-50 md:h-40">
                 {product.Image && (
-                  <img
-                    src={product.Image}
+                  <Image
+                    src={getImageUrl(product.Image)}
                     alt={product.Text}
+                    width={600}
+                    height={800}
                     className="h-full w-full object-contain"
                   />
                 )}

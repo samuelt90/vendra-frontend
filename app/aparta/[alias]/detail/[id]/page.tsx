@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useAparta } from "@/app/aparta/context/ApartaContext";
 import CartModal from "../../components/CartModal";
+import { getImageUrl } from "@/lib/getImageUrl";
+import Image from "next/image";
+
 
 export default function DetailPage() {
   const params = useParams<{ id: string }>();
@@ -87,11 +90,14 @@ export default function DetailPage() {
 {product.Images?.length > 0 && (
   <div className="relative mb-4 overflow-hidden rounded-xl bg-gray-50">
     <div className="flex h-96 items-center justify-center bg-gray-50">
-      <img
-        src={product.Images[currentImageIndex]}
+        <Image
+        src={getImageUrl(product.Images[currentImageIndex])}
         alt={product.Text}
+        width={900}
+        height={1200}
         className="max-h-full max-w-full object-contain"
       />
+
     </div>
 
     {product.Images.length > 1 && (

@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter, useParams } from "next/navigation";
+import { getImageUrl } from "@/lib/getImageUrl";
+import Image from "next/image";
 
 type Product = {
   documentId: string;
@@ -14,12 +16,16 @@ export default function ApartaCard({ product }: { product: Product }) {
   const params = useParams<{ alias: string }>();
   const alias = params?.alias;
 
+  const imageUrl = getImageUrl(product.Image);
+
   return (
     <div className="border rounded-xl p-3 bg-white shadow-sm">
-      {product.Image && (
-        <img
-          src={product.Image}
+      {imageUrl && (
+        <Image
+          src={imageUrl}
           alt={product.Text}
+          width={600}
+          height={800}
           className="w-full h-40 object-cover rounded-lg mb-2"
         />
       )}
