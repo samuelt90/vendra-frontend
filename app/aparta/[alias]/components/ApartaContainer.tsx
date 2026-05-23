@@ -5,7 +5,7 @@ import { Dumbbell, BadgeCheck, Recycle } from "lucide-react";
 import EditorialCarousel from "./EditorialCarousel";
 import { getImageUrl } from "@/lib/getImageUrl";
 import Image from "next/image";
-
+import FaqFloatingButton from "./FaqFloatingButton";
 
 
 export default function ApartaContainer() {
@@ -716,6 +716,7 @@ const logoUrl = store.logo?.[0]?.url
     </button>
   </div>
 )}
+  <FaqFloatingButton/>
     </main>
   );
 }

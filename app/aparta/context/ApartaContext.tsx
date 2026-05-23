@@ -45,7 +45,10 @@ export function ApartaProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const clear = () => setItems([]);
+ const clear = () => {
+  setItems([]);
+  localStorage.removeItem("aparta_cart");
+};
 
   return (
     <ApartaContext.Provider value={{ items, addItem, removeItem, clear }}>

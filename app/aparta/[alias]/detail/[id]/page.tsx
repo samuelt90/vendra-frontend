@@ -6,6 +6,7 @@ import { useAparta } from "@/app/aparta/context/ApartaContext";
 import CartModal from "../../components/CartModal";
 import { getImageUrl } from "@/lib/getImageUrl";
 import Image from "next/image";
+import FaqFloatingButton from "../../components/FaqFloatingButton";
 
 
 export default function DetailPage() {
@@ -172,6 +173,7 @@ export default function DetailPage() {
         >
           ← Volver a la tienda
         </button>
+        
 
       </div>
 
@@ -181,7 +183,7 @@ export default function DetailPage() {
         product={product}
         onClose={() => setOpenModal(false)}
       />
-
+    <FaqFloatingButton/>
     </main>
   );
 }

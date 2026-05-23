@@ -1,8 +1,24 @@
 "use client";
 import { useAparta } from "@/app/aparta/context/ApartaContext";
-import { useState, useEffect } from "react"; // 👈 agregado
+import { useState, useEffect } from "react"; // 
 import { useRouter, useParams } from "next/navigation";
 import Stepper from "../components/Stepper";
+import FaqFloatingButton from "../components/FaqFloatingButton";
+import ConfirmationSplash from "../components/ConfirmationSplash";
+import PostWhatsappSummary from "../components/PostWhatsappSummary";
+
+type SubmittedOrder = {
+  items: any[];
+  total: number;
+  form: {
+    nombre: string;
+    tel: string;
+    direccion: string;
+    entrega: string;
+    pago: string;
+  };
+};
+
 
 export default function CheckoutPage() {
   const { items, clear } = useAparta();
@@ -18,8 +34,12 @@ export default function CheckoutPage() {
     pago: "",
   });
 
-  const [phone, setPhone] = useState(""); // 👈 agregado
-
+  const [phone, setPhone] = useState(""); 
+  const [store, setStore] = useState<any>(null);
+  const [showConfirmationSplash, setShowConfirmationSplash] = useState(false);
+  const [submittedOrder, setSubmittedOrder] = useState<SubmittedOrder | null>(null);
+  const [showOrderSummary, setShowOrderSummary] = useState(false);
+  
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -33,68 +53,103 @@ export default function CheckoutPage() {
 
   const total = items.reduce((acc, item) => acc + item.price, 0);
 
-  // 👇 agregado
+  
   useEffect(() => {
     const fetchStore = async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/aparta-stores?filters[slug][$eq]=${params.alias}`
-        );
+       const res = await fetch(
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/aparta-stores?filters[slug][$eq]=${params.alias}&populate=*`
+      );
 
-        const json = await res.json();
+      const json = await res.json();
+      const store = json.data?.[0];
 
-        const store = json.data?.[0];
-
-        if (store) {
-          setPhone(store.whatsapp);
-        }
-      } catch (err) {
-        console.error(err);
+      if (store) {
+        setStore(store);
+        setPhone(store.whatsapp);
       }
-    };
+            } catch (err) {
+              console.error(err);
+            }
+          };
 
     fetchStore();
   }, [params.alias]);
 
-  const generarMensaje = () => {
-    let mensaje = "Hola, quiero comprar:\n\n";
+const generarMensaje = () => {
+  let mensaje = " Nuevo pedido recibido\n\n";
 
-    items.forEach((item) => {
-      mensaje += `Producto: ${item.Text}\n`;
-      mensaje += `Cantidad: 1\n`;
-      mensaje += `Precio unitario: Q${item.price}\n`;
-      mensaje += `Subtotal: Q${item.price}\n\n`;
-    });
+  items.forEach((item) => {
+    mensaje += `Producto:\n`;
+    mensaje += `• ${item.Text}\n`;
+    mensaje += `  Cantidad: 1\n`;
+    mensaje += `  Subtotal: Q${item.price}\n\n`;
+  });
 
-    mensaje += `Total: Q${total}\n\n`;
+  mensaje += ` Total: Q${total}\n\n`;
 
-    mensaje += "— Datos de envío —\n";
-    mensaje += `Nombre: ${form.nombre}\n`;
-    mensaje += `Tel: ${form.tel}\n`;
-    mensaje += `Dirección: ${form.direccion}\n`;
-    mensaje += `Entrega: ${form.entrega}\n`;
-    mensaje += `Pago: ${form.pago}\n`;
+  mensaje += " Datos del cliente\n";
+  mensaje += `Nombre: ${form.nombre}\n`;
+  mensaje += `Teléfono: ${form.tel}\n`;
+  mensaje += `Dirección:\n${form.direccion}\n\n`;
 
-    return mensaje;
-  };
+  mensaje += ` Entrega: ${form.entrega}\n`;
+  mensaje += ` Pago: ${form.pago}\n`;
 
-  const enviarWhatsApp = () => {
-    if (!isValid) return;
+  return mensaje;
+};
 
-    const mensaje = generarMensaje();
+const enviarWhatsApp = () => {
+  if (!isValid) return;
 
-    // 👇 modificado (usa phone)
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(mensaje)}`;
+  const mensaje = generarMensaje();
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(mensaje)}`;
 
-    window.open(url, "_blank");
-    setTimeout(() => {
-      clear();
-      window.location.href = `/aparta/${alias}`;
-    }, 1000);
+  window.open(url, "_blank");
 
-    clear();
-  };
+  setShowConfirmationSplash(true);
+  setSubmittedOrder({
+  items: [...items],
+  total,
+  form: { ...form },
+  });
+  clear();
+
+  
+};
+
   const currentStep: 2 | 3 = isValid ? 3 : 2;
+
+  const confirmationImageUrl =
+  store?.confirmation_image?.formats?.large?.url ||
+  store?.confirmation_image?.url ||
+  null;
+    if (showConfirmationSplash) {
+      return (
+        <ConfirmationSplash
+          storeName={store?.name || "la tienda"}
+          confirmationImageUrl={confirmationImageUrl}
+          onViewSummary={() => {
+          setShowConfirmationSplash(false);
+          setShowOrderSummary(true);
+        }}
+          onContinueShopping={() => {
+            router.push(`/aparta/${alias}`);
+          }}
+        />
+      );
+    }
+if (showOrderSummary && submittedOrder) {
+  return (
+    <PostWhatsappSummary
+      order={submittedOrder}
+      storeName={store?.name || "la tienda"}
+      storeWhatsapp={phone}
+      onContinueShopping={() => router.push(`/aparta/${alias}`)}
+    />
+  );
+}
+
   return (
     <main className="max-w-md mx-auto p-4">
       <Stepper step={currentStep} />
@@ -104,7 +159,7 @@ export default function CheckoutPage() {
         </h1>
 
         <p className="text-center text-gray-500 text-sm mb-6">
-          Ingresa tus datos para confirmar por WhatsApp.
+          Completa tus datos para que la tienda pueda confirmar y coordinar tu pedido por whatsapp
         </p>
 
         {/* RESUMEN */}
@@ -172,6 +227,12 @@ export default function CheckoutPage() {
           </div>
         </div>
 
+        <div className="mt-5 rounded-2xl border border-green-100 bg-green-50 px-4 py-3">
+        <p className="text-sm leading-relaxed text-green-800">
+          Tus datos serán utilizados únicamente para confirmar y coordinar tu pedido.
+        </p>
+      </div>
+
         {/* BOTÓN */}
         <button
           onClick={enviarWhatsApp}
@@ -185,6 +246,8 @@ export default function CheckoutPage() {
           Confirmar pedido por WhatsApp
         </button>
 
+         
+
         {/* VOLVER */}
         <button
           onClick={() => router.push(`/aparta/${params.alias}/cart`)}
@@ -193,6 +256,7 @@ export default function CheckoutPage() {
           ← Volver al carrito
         </button>
       </div>
+      <FaqFloatingButton/>
     </main>
   );
 }
