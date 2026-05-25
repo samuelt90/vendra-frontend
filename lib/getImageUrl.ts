@@ -1,10 +1,13 @@
 export function getImageUrl(url?: string | null) {
   if (!url) return "";
 
-  const cloudinaryIndex = url.indexOf("https://res.cloudinary.com");
+  const cloudinaryBase = "https://res.cloudinary.com";
+  const cloudinaryIndex = url.indexOf(cloudinaryBase);
 
   if (cloudinaryIndex !== -1) {
-    return url.slice(cloudinaryIndex);
+    const cleanUrl = url.slice(cloudinaryIndex);
+
+    return optimizeCloudinaryUrl(cleanUrl);
   }
 
   if (url.startsWith("http://") || url.startsWith("https://")) {
@@ -12,4 +15,21 @@ export function getImageUrl(url?: string | null) {
   }
 
   return `${process.env.NEXT_PUBLIC_STRAPI_URL}${url}`;
+}
+
+function optimizeCloudinaryUrl(url: string) {
+  if (!url.includes("/image/upload/")) return url;
+
+  if (
+    url.includes("/image/upload/f_auto") ||
+    url.includes("/image/upload/q_auto") ||
+    url.includes("/image/upload/c_limit")
+  ) {
+    return url;
+  }
+
+  return url.replace(
+    "/image/upload/",
+    "/image/upload/f_auto,q_auto,c_limit,w_1600/"
+  );
 }

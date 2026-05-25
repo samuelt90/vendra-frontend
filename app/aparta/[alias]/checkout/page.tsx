@@ -58,7 +58,7 @@ export default function CheckoutPage() {
     const fetchStore = async () => {
       try {
        const res = await fetch(
-        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/aparta-stores?filters[slug][$eq]=${params.alias}&populate=*`
+        `${process.env.NEXT_PUBLIC_STRAPI_URL}/api/aparta-stores?filters[slug][$eq]=${params.alias}`
       );
 
       const json = await res.json();

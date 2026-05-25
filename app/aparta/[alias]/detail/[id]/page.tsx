@@ -26,7 +26,7 @@ export default function DetailPage() {
 
     const fetchProduct = async () => {
       const res = await fetch(
-        `${STRAPI}/api/aparta-products/${id}?populate=*`
+        `${STRAPI}/api/aparta-products/${id}?populate[Imagen]=true`
       );
 
       const json = await res.json();
