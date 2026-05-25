@@ -1,95 +1,108 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Dumbbell, BadgeCheck, Recycle } from "lucide-react";
 import EditorialCarousel from "./EditorialCarousel";
 import { getImageUrl } from "@/lib/getImageUrl";
+import { getStrapiMediaUrl } from "@/lib/getStrapiMediaUrl";
 import Image from "next/image";
 import FaqFloatingButton from "./FaqFloatingButton";
-
+import { useAparta } from "../../context/ApartaContext";
 
 export default function ApartaContainer() {
   const params = useParams<{ alias: string }>();
   const router = useRouter();
+  const alias = params?.alias || "";
 
-  const [store, setStore] = useState<any>(null);
-  const [products, setProducts] = useState<any[]>([]);
+  const { getCatalogCache, setCatalogCache } = useAparta();
+
+  const cachedCatalog = alias ? getCatalogCache(alias) : null;
+
+  const [store, setStore] = useState<any>(cachedCatalog?.store ?? null);
+  const [products, setProducts] = useState<any[]>(cachedCatalog?.products ?? []);
+
   const [search, setSearch] = useState("");
   const [generoFilter, setGeneroFilter] = useState("Todos");
   const [tallaFilter, setTallaFilter] = useState("Todas");
   const [tipoFilter, setTipoFilter] = useState("Todo");
   const [estadoFilter, setEstadoFilter] = useState("Todos");
   const [ofertaFilter, setOfertaFilter] = useState(false);
-  const [showFilters, setShowFilters]= useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(6);
   const [itemsPerLoad, setItemsPerLoad] = useState(6);
 
-  const updateVisibleCount = () => {
-  const count = window.innerWidth >= 1024 ? 10 : 6;
-
-  setVisibleCount(count);
-  setItemsPerLoad(count);
-};
-
-  useEffect(() => {
-  updateVisibleCount();
-
-  window.addEventListener("resize", updateVisibleCount);
-
-  return () => {
-    window.removeEventListener("resize", updateVisibleCount);
-  };
-}, []);
-
   const [openFilters, setOpenFilters] = useState({
-  tipo: true,
-  talla: false,
-  genero: false,
-  estado: false,
-});
-
-const toggleFilterSection = (section: "tipo" | "talla" | "genero" | "estado") => {
-  setOpenFilters((prev) => ({
-    ...prev,
-    [section]: !prev[section],
-  }));
-};
+    tipo: true,
+    talla: false,
+    genero: false,
+    estado: false,
+  });
 
   const STRAPI = process.env.NEXT_PUBLIC_STRAPI_URL;
 
+  const updateVisibleCount = () => {
+    const count = window.innerWidth >= 1024 ? 10 : 6;
+    setVisibleCount(count);
+    setItemsPerLoad(count);
+  };
+
   useEffect(() => {
-    if (!params?.alias) return;
+    updateVisibleCount();
+
+    window.addEventListener("resize", updateVisibleCount);
+
+    return () => {
+      window.removeEventListener("resize", updateVisibleCount);
+    };
+  }, []);
+
+  const toggleFilterSection = (
+    section: "tipo" | "talla" | "genero" | "estado"
+  ) => {
+    setOpenFilters((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  useEffect(() => {
+    if (!alias || !STRAPI) return;
+
+    const cached = getCatalogCache(alias);
+
+    if (cached) {
+      setStore(cached.store);
+      setProducts(cached.products);
+      return;
+    }
 
     const fetchData = async () => {
       try {
+        setStore(null);
+        setProducts([]);
+
         const storeRes = await fetch(
-          `${STRAPI}/api/aparta-stores?filters[slug][$eq]=${params.alias}&populate[0]=cover&populate[1]=logo`
+          `${STRAPI}/api/aparta-stores?filters[slug][$eq]=${alias}&populate[0]=cover&populate[1]=logo`
         );
+
         const storeJson = await storeRes.json();
         const storeData = storeJson.data?.[0];
 
-        setStore(storeData);
+        if (!storeData) return;
 
-        // 🔥 BLOQUE CORREGIDO (fetch filtrado por tienda)
         const prodRes = await fetch(
-          `${STRAPI}/api/aparta-products?filters[aparta_product][id][$eq]=${storeData.id}&populate=Imagen`
+          `${STRAPI}/api/aparta-products?filters[aparta_store][id][$eq]=${storeData.id}&populate=Imagen`
         );
 
         const prodJson = await prodRes.json();
 
         const mapped = prodJson.data.map((p: any) => {
           const attrs = p.attributes || p;
-          console.log(attrs);
-
-          const imageUrl =
-            attrs.Imagen?.data?.[0]?.attributes?.url
-              ? `${STRAPI}${attrs.Imagen.data[0].attributes.url}`
-              : attrs.Imagen?.[0]?.url
-              ? `${STRAPI}${attrs.Imagen[0].url}`
-              : null;
-
+          const imageUrl = getStrapiMediaUrl(attrs.Imagen);
 
           return {
+            id: p.id,
             documentId: p.documentId || p.id,
             Text: attrs.Text,
             price: attrs.price,
@@ -103,88 +116,102 @@ const toggleFilterSection = (section: "tipo" | "talla" | "genero" | "estado") =>
             oferta: attrs.oferta,
             encontrado_semana: attrs.encontrado_semana,
             refit_pick: attrs.refit_pick,
-
           };
         });
 
-       
-        
-        setProducts(mapped.filter((p: any) => p.estado !== "apartado"));
-        // 🔥 FIN BLOQUE CORREGIDO
+        const availableProducts = mapped.filter(
+          (p: any) => p.estado !== "apartado"
+        );
 
+        setStore(storeData);
+        setProducts(availableProducts);
+        setCatalogCache(alias, storeData, availableProducts);
       } catch (err) {
         console.error(err);
       }
     };
 
     fetchData();
-  }, [params?.alias]);
+  }, [alias]);
 
-  if (!store) return <div className="p-4">Cargando...</div>;
-
-const coverUrl = store.cover?.url
+ const coverUrl = store?.cover?.url
   ? getImageUrl(store.cover.url)
-  : store.attributes?.cover?.data?.attributes?.url
+  : store?.attributes?.cover?.data?.attributes?.url
   ? getImageUrl(store.attributes.cover.data.attributes.url)
   : null;
 
-const logoUrl = store.logo?.[0]?.url
+const logoUrl = store?.logo?.[0]?.url
   ? getImageUrl(store.logo[0].url)
   : null;
 
+const ofertasDestacadas = useMemo(
+  () => products.filter((p) => p.oferta === true),
+  [products]
+);
 
+const encontradosSemana = useMemo(
+  () => products.filter((p) => p.encontrado_semana === true),
+  [products]
+);
 
-    const ofertasDestacadas = products.filter(
-      (p) => p.oferta === true
-    );
+const refitPicks = useMemo(
+  () => products.filter((p) => p.refit_pick === true),
+  [products]
+);
 
-    const encontradosSemana = products.filter(
-      (p) => p.encontrado_semana === true
-    );
-
-    const refitPicks = products.filter(
-      (p) => p.refit_pick === true
-    );
-
-  const filteredProducts = products.filter((product) => {
+const filteredProducts = useMemo(() => {
   const searchText = search.toLowerCase();
 
-  const matchesSearch =
-    product.Text?.toLowerCase().includes(searchText) ||
-    product.codigo?.toLowerCase().includes(searchText);
+  return products.filter((product) => {
+    const matchesSearch =
+      product.Text?.toLowerCase().includes(searchText) ||
+      product.codigo?.toLowerCase().includes(searchText);
 
-  const matchesGenero =
-    generoFilter === "Todos" ||
-    product.genero === generoFilter.toLowerCase();
+    const matchesGenero =
+      generoFilter === "Todos" ||
+      product.genero === generoFilter.toLowerCase();
 
-  const matchesTalla =
-  tallaFilter === "Todas" ||
-  product.talla?.toLowerCase() === tallaFilter.toLowerCase();
+    const matchesTalla =
+      tallaFilter === "Todas" ||
+      product.talla?.toLowerCase() === tallaFilter.toLowerCase();
 
-  const matchesTipo =
-  tipoFilter === "Todo" ||
-  product.tipo_prenda?.toLowerCase() === tipoFilter.toLowerCase();
+    const matchesTipo =
+      tipoFilter === "Todo" ||
+      product.tipo_prenda?.toLowerCase() === tipoFilter.toLowerCase();
 
-  const matchesEstado =
-  estadoFilter === "Todos" ||
-  product.estado_prenda?.toLowerCase() === estadoFilter.toLowerCase();
+    const matchesEstado =
+      estadoFilter === "Todos" ||
+      product.estado_prenda?.toLowerCase() === estadoFilter.toLowerCase();
 
-  const matchesOferta =
-    !ofertaFilter || product.oferta === true;
+    const matchesOferta = !ofertaFilter || product.oferta === true;
 
-  return (
-    matchesSearch &&
-    matchesGenero &&
-    matchesTalla &&
-    matchesTipo &&
-    matchesEstado &&
-    matchesOferta
-  );
-});
+    return (
+      matchesSearch &&
+      matchesGenero &&
+      matchesTalla &&
+      matchesTipo &&
+      matchesEstado &&
+      matchesOferta
+    );
+  });
+}, [
+  products,
+  search,
+  generoFilter,
+  tallaFilter,
+  tipoFilter,
+  estadoFilter,
+  ofertaFilter,
+]);
 
-  const visibleProducts = filteredProducts.slice(0, visibleCount);
+const visibleProducts = useMemo(
+  () => filteredProducts.slice(0, visibleCount),
+  [filteredProducts, visibleCount]
+);
 
-  const hasMoreProducts = visibleCount < filteredProducts.length;
+const hasMoreProducts = visibleCount < filteredProducts.length;
+
+if (!store) return <div className="p-4">Cargando...</div>;
 
 
   return (
