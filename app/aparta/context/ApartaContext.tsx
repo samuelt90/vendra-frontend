@@ -23,6 +23,7 @@ type ApartaContextType = {
   clear: () => void;
 
   catalogCache: Record<string, CatalogCacheItem>;
+  catalogCacheReady: boolean;
   getCatalogCache: (alias: string) => CatalogCacheItem | null;
   setCatalogCache: (alias: string, store: any, products: any[]) => void;
   clearCatalogCache: (alias?: string) => void;
@@ -30,29 +31,67 @@ type ApartaContextType = {
 
 const ApartaContext = createContext<ApartaContextType | null>(null);
 
+const CART_KEY = "aparta_cart";
+const CATALOG_CACHE_KEY = "aparta_catalog_cache";
+const CATALOG_CACHE_TTL = 2 * 60 * 1000; // 2 minutos
+
 export function ApartaProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<Item[]>([]);
   const [catalogCache, setCatalogCacheState] = useState<
     Record<string, CatalogCacheItem>
   >({});
+  const [catalogCacheReady, setCatalogCacheReady] = useState(false);
 
-  // cargar carrito desde localStorage
   useEffect(() => {
-    const saved = localStorage.getItem("aparta_cart");
+    const savedCart = localStorage.getItem(CART_KEY);
 
-    if (saved) {
+    if (savedCart) {
       try {
-        setItems(JSON.parse(saved));
+        setItems(JSON.parse(savedCart));
       } catch {
-        localStorage.removeItem("aparta_cart");
+        localStorage.removeItem(CART_KEY);
       }
     }
+
+    const savedCatalog = sessionStorage.getItem(CATALOG_CACHE_KEY);
+
+    if (savedCatalog) {
+      try {
+        const parsed = JSON.parse(savedCatalog) as Record<
+          string,
+          CatalogCacheItem
+        >;
+
+        const now = Date.now();
+
+        const validCache = Object.fromEntries(
+          Object.entries(parsed).filter(
+            ([, value]) => now - value.cachedAt < CATALOG_CACHE_TTL
+          )
+        );
+
+        setCatalogCacheState(validCache);
+
+        if (Object.keys(validCache).length === 0) {
+          sessionStorage.removeItem(CATALOG_CACHE_KEY);
+        }
+      } catch {
+        sessionStorage.removeItem(CATALOG_CACHE_KEY);
+      }
+    }
+
+    setCatalogCacheReady(true);
   }, []);
 
-  // guardar carrito en localStorage
   useEffect(() => {
-    localStorage.setItem("aparta_cart", JSON.stringify(items));
+    localStorage.setItem(CART_KEY, JSON.stringify(items));
   }, [items]);
+
+  useEffect(() => {
+    if (!catalogCacheReady) return;
+
+    sessionStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify(catalogCache));
+  }, [catalogCache, catalogCacheReady]);
 
   const addItem = (item: Item) => {
     setItems((prev) => {
@@ -69,13 +108,23 @@ export function ApartaProvider({ children }: { children: React.ReactNode }) {
 
   const clear = () => {
     setItems([]);
-    localStorage.removeItem("aparta_cart");
+    localStorage.removeItem(CART_KEY);
   };
 
   const getCatalogCache = (alias: string) => {
     if (!alias) return null;
 
-    return catalogCache[alias] ?? null;
+    const cached = catalogCache[alias];
+    if (!cached) return null;
+
+    const isExpired = Date.now() - cached.cachedAt > CATALOG_CACHE_TTL;
+
+    if (isExpired) {
+      clearCatalogCache(alias);
+      return null;
+    }
+
+    return cached;
   };
 
   const setCatalogCache = (alias: string, store: any, products: any[]) => {
@@ -94,6 +143,7 @@ export function ApartaProvider({ children }: { children: React.ReactNode }) {
   const clearCatalogCache = (alias?: string) => {
     if (!alias) {
       setCatalogCacheState({});
+      sessionStorage.removeItem(CATALOG_CACHE_KEY);
       return;
     }
 
@@ -112,6 +162,7 @@ export function ApartaProvider({ children }: { children: React.ReactNode }) {
         removeItem,
         clear,
         catalogCache,
+        catalogCacheReady,
         getCatalogCache,
         setCatalogCache,
         clearCatalogCache,

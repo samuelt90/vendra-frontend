@@ -15,7 +15,7 @@ export default function ApartaContainer() {
   const router = useRouter();
   const alias = params?.alias || "";
 
-  const { getCatalogCache, setCatalogCache } = useAparta();
+  const { getCatalogCache, setCatalogCache, catalogCacheReady } = useAparta();
 
   const cachedCatalog = alias ? getCatalogCache(alias) : null;
 
@@ -67,7 +67,7 @@ export default function ApartaContainer() {
   };
 
   useEffect(() => {
-    if (!alias || !STRAPI) return;
+    if (!alias || !STRAPI || !catalogCacheReady) return;
 
     const cached = getCatalogCache(alias);
 
@@ -82,22 +82,37 @@ export default function ApartaContainer() {
         setStore(null);
         setProducts([]);
 
-        const storeRes = await fetch(
-          `${STRAPI}/api/aparta-stores?filters[slug][$eq]=${alias}&populate[0]=cover&populate[1]=logo`
-        );
+const catalogUrl =
+  `${STRAPI}/api/aparta-stores` +
+  `?filters[slug][$eq]=${alias}` +
+  `&fields[0]=name` +
+  `&fields[1]=slug` +
+  `&fields[2]=whatsapp` +
+  `&fields[3]=descripcion` +
+  `&fields[4]=is_active` +
+  `&populate[cover][fields][0]=url` +
+  `&populate[logo][fields][0]=url` +
+  `&populate[aparta_products][fields][0]=Text` +
+  `&populate[aparta_products][fields][1]=price` +
+  `&populate[aparta_products][fields][2]=estado` +
+  `&populate[aparta_products][fields][3]=codigo` +
+  `&populate[aparta_products][fields][4]=genero` +
+  `&populate[aparta_products][fields][5]=talla` +
+  `&populate[aparta_products][fields][6]=tipo_prenda` +
+  `&populate[aparta_products][fields][7]=estado_prenda` +
+  `&populate[aparta_products][fields][8]=oferta` +
+  `&populate[aparta_products][fields][9]=encontrado_semana` +
+  `&populate[aparta_products][fields][10]=refit_pick` +
+  `&populate[aparta_products][populate][Imagen][fields][0]=url`;
 
-        const storeJson = await storeRes.json();
-        const storeData = storeJson.data?.[0];
+const catalogRes = await fetch(catalogUrl);
+const catalogJson = await catalogRes.json();
 
-        if (!storeData) return;
+const storeData = catalogJson.data?.[0];
 
-        const prodRes = await fetch(
-          `${STRAPI}/api/aparta-products?filters[aparta_store][id][$eq]=${storeData.id}&populate=Imagen`
-        );
+if (!storeData) return;
 
-        const prodJson = await prodRes.json();
-
-        const mapped = prodJson.data.map((p: any) => {
+const mapped = storeData.aparta_products.map((p: any) => {
           const attrs = p.attributes || p;
           const imageUrl = getStrapiMediaUrl(attrs.Imagen);
 
@@ -132,7 +147,7 @@ export default function ApartaContainer() {
     };
 
     fetchData();
-  }, [alias]);
+  }, [alias, catalogCacheReady]);
 
  const coverUrl = store?.cover?.url
   ? getImageUrl(store.cover.url)

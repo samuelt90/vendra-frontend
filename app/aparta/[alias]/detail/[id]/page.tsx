@@ -21,35 +21,58 @@ export default function DetailPage() {
 
   const STRAPI = process.env.NEXT_PUBLIC_STRAPI_URL;
 
-  useEffect(() => {
-    if (!id) return;
+useEffect(() => {
+  if (!id || !STRAPI) return;
 
-    const fetchProduct = async () => {
-      const res = await fetch(
-        `${STRAPI}/api/aparta-products/${id}?populate[Imagen]=true`
-      );
+  const fetchProduct = async () => {
+    try {
+      const productUrl =
+        `${STRAPI}/api/aparta-products/${id}` +
+        `?fields[0]=Text` +
+        `&fields[1]=price` +
+        `&fields[2]=description` +
+        `&fields[3]=estado` +
+        `&fields[4]=codigo` +
+        `&fields[5]=genero` +
+        `&fields[6]=talla` +
+        `&fields[7]=tipo_prenda` +
+        `&fields[8]=estado_prenda` +
+        `&populate[Imagen][fields][0]=url`;
 
+      const res = await fetch(productUrl);
       const json = await res.json();
 
-      const attrs = json.data.attributes || json.data;
+      const attrs = json.data?.attributes || json.data;
+
+      if (!attrs) return;
 
       const images =
-      attrs.Imagen?.length > 0
-        ? attrs.Imagen.map((img: any) => `${STRAPI}${img.url}`)
-        : [];
+        attrs.Imagen?.length > 0
+          ? attrs.Imagen.map((img: any) => img.url).filter(Boolean)
+          : [];
 
       setProduct({
         id: json.data.id,
+        documentId: json.data.documentId || id,
         Text: attrs.Text,
         price: attrs.price,
         description: attrs.description,
+        estado: attrs.estado,
+        codigo: attrs.codigo,
+        genero: attrs.genero,
+        talla: attrs.talla,
+        tipo_prenda: attrs.tipo_prenda,
+        estado_prenda: attrs.estado_prenda,
         Image: images[0] || null,
         Images: images,
       });
-    };
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    fetchProduct();
-  }, [id]);
+  fetchProduct();
+}, [id, STRAPI]);
 
   const handleApartar = async () => {
     try {
