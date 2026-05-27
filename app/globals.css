@@ -18,4 +18,31 @@ body {
   .bg-dls-header {
     background: linear-gradient(to right, #a0e7f9, #fcd1ff);
   }
+@keyframes drawOutline {
+  0% {
+    stroke-dasharray: 360;
+    stroke-dashoffset: 360;
+    opacity: 0.35;
+  }
+
+  45% {
+    stroke-dasharray: 360;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  75% {
+    stroke-dasharray: 360;
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  100% {
+    stroke-dasharray: 360;
+    stroke-dashoffset: -360;
+    opacity: 0.35;
+  }
+}
+
+
 }

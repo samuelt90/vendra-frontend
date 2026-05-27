@@ -9,6 +9,7 @@ import { getStrapiMediaUrl } from "@/lib/getStrapiMediaUrl";
 import Image from "next/image";
 import FaqFloatingButton from "./FaqFloatingButton";
 import { useAparta } from "../../context/ApartaContext";
+import CatalogSkeleton from "./CatalogSkeleton";
 
 export default function ApartaContainer() {
   const params = useParams<{ alias: string }>();
@@ -226,7 +227,7 @@ const visibleProducts = useMemo(
 
 const hasMoreProducts = visibleCount < filteredProducts.length;
 
-if (!store) return <div className="p-4">Cargando...</div>;
+if (!store) return <CatalogSkeleton/>;
 
 
   return (
