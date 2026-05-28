@@ -33,7 +33,7 @@ const ApartaContext = createContext<ApartaContextType | null>(null);
 
 const CART_KEY = "aparta_cart";
 const CATALOG_CACHE_KEY = "aparta_catalog_cache";
-const CATALOG_CACHE_TTL = 2 * 60 * 1000; // 2 minutos
+const CATALOG_CACHE_TTL = 30 * 1000; // 30 segundos
 
 export function ApartaProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<Item[]>([]);
@@ -120,7 +120,6 @@ export function ApartaProvider({ children }: { children: React.ReactNode }) {
     const isExpired = Date.now() - cached.cachedAt > CATALOG_CACHE_TTL;
 
     if (isExpired) {
-      clearCatalogCache(alias);
       return null;
     }
 

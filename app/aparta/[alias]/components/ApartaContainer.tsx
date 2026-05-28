@@ -701,52 +701,54 @@ if (!store) return <CatalogSkeleton/>;
 
 {/* GRID */}
 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {visibleProducts.map((product, index) => (
-          <div
-            key={product.documentId}
-            className="bg-white rounded-2xl shadow-md p-3 transition hover:shadow-lg hover:scale-[1.02]"
-          >
-            
-           {/* Imagen */}
-            {product.Image && (
-              <div className="mb-3 flex h-56 items-center justify-center overflow-hidden rounded-2xl bg-gray-50">
-               <Image
-                src={getImageUrl(product.Image)}
-                alt={product.Text}
-                width={600}
-                height={800}
-                className="h-full w-full object-contain"
-                priority={index < 4}
-              />
-              </div>
-            )}
+  {visibleProducts.map((product, index) => (
+    <div
+      key={product.documentId}
+      className="group overflow-hidden rounded-3xl bg-white shadow-md ring-1 ring-black/5 transition sm:hover:-translate-y-1 sm:hover:shadow-xl"
+    >
+      {/* Imagen */}
+      {product.Image && (
+        <div className="flex h-56 items-center justify-center bg-gray-50 px-3 py-4">
+          <Image
+            src={getImageUrl(product.Image)}
+            alt={product.Text}
+            width={600}
+            height={800}
+            className="h-full w-full object-contain transition sm:group-hover:scale-[1.03]"
+            priority={index < 4}
+          />
+        </div>
+      )}
 
-            {/* Precio */}
-            <p className="font-bold text-sm mb-1">
-              Q{product.price}
-            </p>
+      <div className="p-3">
+        {/* Precio */}
+        <p className="text-base font-bold text-gray-950">
+          Q{product.price}
+        </p>
 
-            {/* Nombre */}
-            <p className="text-sm mb-2 line-clamp-2">
-              {product.Text}
-            </p>
+        {/* Nombre */}
+        <p className="mt-1 min-h-[40px] text-sm leading-snug text-gray-600 line-clamp-2">
+          {product.Text}
+        </p>
 
-            
-
-            {/* Botón */}
-            <button
-              onClick={() =>
-                router.push(
-                  `/aparta/${params.alias}/detail/${product.documentId}`
-                )
-              }
-              className="w-full bg-green-600 text-white py-2 rounded-xl text-sm font-semibold transition hover:text-base"
-            >
-              Ver detalles →
-            </button>
-          </div>
-        ))}
+        {/* Botón */}
+       <button
+        type="button"
+        onClick={() =>
+          router.push(
+            `/aparta/${params.alias}/detail/${product.documentId}`
+          )
+        }
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-green-600 py-2.5 text-sm font-semibold text-white shadow-sm transition active:scale-[0.98] sm:hover:bg-green-700"
+      >
+        Ver detalles
+        <span aria-hidden="true">→</span>
+      </button>
       </div>
+    </div>
+  ))}
+</div>
+
 
       {hasMoreProducts && (
   <div className="mt-8 flex justify-center">

@@ -2,81 +2,94 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { useEffect } from "react";
+import { CheckCircle2, ShoppingCart } from "lucide-react";
 
 export default function CartModal({ open, product, onClose }: any) {
   const router = useRouter();
   const params = useParams<{ alias: string }>();
 
-  // 🔥 auto cerrar (3s)
   useEffect(() => {
     if (!open) return;
 
     const timer = setTimeout(() => {
       onClose();
-    }, 3000);
+    }, 4000);
 
     return () => clearTimeout(timer);
-  }, [open]);
+  }, [open, onClose]);
 
   if (!open || !product) return null;
 
   return (
-    <div className="fixed bottom-4 left-0 right-0 flex justify-center z-50 px-4">
+    <div className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
+      <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-black/5">
+        <div className="p-5">
+          {/* Header */}
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-600">
+              <CheckCircle2 size={22} />
+            </div>
 
-      <div className="bg-white rounded-2xl shadow-md w-full max-w-md p-4">
+            <div>
+              <h2 className="text-base font-bold text-gray-900">
+                Prenda agregada
+              </h2>
 
-        {/* Header */}
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-green-600 text-lg">✔</span>
-          <p className="font-semibold text-sm">
-            Producto agregado al carrito
-          </p>
-        </div>
-
-        {/* Producto */}
-        <div className="flex justify-between items-center mb-2">
-          <div>
-            <p className="text-sm">{product.Text}</p>
-            <p className="text-xs text-gray-500">Cantidad: 1</p>
+              <p className="mt-1 text-sm leading-relaxed text-gray-500">
+                Tu prenda fue agregada al carrito para continuar con el pedido.
+              </p>
+            </div>
           </div>
 
-          <p className="font-semibold text-sm">
-            Q{product.price}
-          </p>
+          {/* Producto */}
+          <div className="mt-5 rounded-2xl bg-gray-50 p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium leading-snug text-gray-900">
+                  {product.Text}
+                </p>
+
+                <p className="mt-1 text-xs text-gray-500">
+                  Cantidad: 1
+                </p>
+              </div>
+
+              <p className="shrink-0 text-sm font-bold text-gray-900">
+                Q{product.price}
+              </p>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between border-t border-gray-200 pt-3">
+              <p className="text-sm font-medium text-gray-500">
+                Total
+              </p>
+
+              <p className="text-base font-bold text-gray-950">
+                Q{product.price}
+              </p>
+            </div>
+          </div>
+
+          {/* Botones */}
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => router.push(`/aparta/${params.alias}/cart`)}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-green-600 py-3 text-sm font-semibold text-white shadow-sm transition active:scale-[0.98] sm:hover:bg-green-700"
+            >
+              <ShoppingCart size={17} />
+              Ver carrito
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full rounded-2xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-700 transition active:scale-[0.98] sm:hover:bg-gray-50"
+            >
+              Seguir comprando
+            </button>
+          </div>
         </div>
-
-        {/* Línea */}
-        <div className="border-t my-3"></div>
-
-        {/* Total */}
-        <div className="flex justify-between mb-4">
-          <p className="text-sm font-semibold">Total</p>
-          <p className="font-bold">Q{product.price}</p>
-        </div>
-
-        {/* Botones */}
-        <div className="flex gap-2">
-
-          {/* Ir al carrito */}
-          <button
-            onClick={() =>
-              router.push(`/aparta/${params.alias}/cart`)
-            }
-            className="flex-1 bg-green-600 text-white py-3 rounded-xl font-semibold text-sm"
-          >
-            Ver carrito
-          </button>
-
-          {/* Seguir */}
-          <button
-            onClick={onClose}
-            className="flex-1 border border-gray-300 py-3 rounded-xl text-sm"
-          >
-            Seguir comprando
-          </button>
-
-        </div>
-
       </div>
     </div>
   );

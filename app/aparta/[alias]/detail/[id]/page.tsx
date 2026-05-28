@@ -7,6 +7,7 @@ import CartModal from "../../components/CartModal";
 import { getImageUrl } from "@/lib/getImageUrl";
 import Image from "next/image";
 import FaqFloatingButton from "../../components/FaqFloatingButton";
+import { Lock } from "lucide-react";
 
 
 export default function DetailPage() {
@@ -107,98 +108,102 @@ useEffect(() => {
   return (
     <main className="max-w-md mx-auto p-4">
 
-      {/* CARD PRINCIPAL */}
-      <div className="bg-white rounded-2xl shadow-md p-5 text-center">
-
-{/* Imagen / Galería */}
-{product.Images?.length > 0 && (
-  <div className="relative mb-4 overflow-hidden rounded-xl bg-gray-50">
-    <div className="flex h-96 items-center justify-center bg-gray-50">
+{/* CARD PRINCIPAL */}
+<div className="overflow-hidden rounded-3xl bg-white shadow-md">
+  {/* Imagen / Galería */}
+  {product.Images?.length > 0 && (
+    <div className="relative bg-gray-50">
+      <div className="flex h-[430px] items-center justify-center px-4 py-5">
         <Image
-        src={getImageUrl(product.Images[currentImageIndex])}
-        alt={product.Text}
-        width={900}
-        height={1200}
-        className="max-h-full max-w-full object-contain"
-      />
+          src={getImageUrl(product.Images[currentImageIndex])}
+          alt={product.Text}
+          width={900}
+          height={1200}
+          priority
+          className="h-full w-full object-contain"
+        />
+      </div>
 
+      {product.Images.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={() =>
+              setCurrentImageIndex((prev) =>
+                prev === 0 ? product.Images.length - 1 : prev - 1
+              )
+            }
+            className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-semibold text-gray-800 shadow-md backdrop-blur transition active:scale-95"
+          >
+            ←
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              setCurrentImageIndex((prev) =>
+                prev === product.Images.length - 1 ? 0 : prev + 1
+              )
+            }
+            className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-lg font-semibold text-gray-800 shadow-md backdrop-blur transition active:scale-95"
+          >
+            →
+          </button>
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-gray-700 shadow-sm backdrop-blur">
+            {currentImageIndex + 1} / {product.Images.length}
+          </div>
+        </>
+      )}
+    </div>
+  )}
+
+  <div className="px-5 pb-5 pt-5">
+    {/* Nombre + precio */}
+    <div className="space-y-2">
+      <h1 className="text-lg font-semibold leading-snug text-gray-900">
+        {product.Text}
+      </h1>
+
+      <p className="text-2xl font-bold text-gray-950">
+        Q{product.price}
+      </p>
     </div>
 
-    {product.Images.length > 1 && (
-      <>
-        <button
-          type="button"
-          onClick={() =>
-            setCurrentImageIndex((prev) =>
-              prev === 0 ? product.Images.length - 1 : prev - 1
-            )
-          }
-          className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/60 px-3 py-2 text-white"
-        >
-          ←
-        </button>
+    {/* Descripción */}
+    {product.description && (
+      <div className="mt-5 rounded-2xl bg-gray-50 p-4">
+        <h2 className="text-sm font-semibold text-gray-900">
+          Descripción
+        </h2>
 
-        <button
-          type="button"
-          onClick={() =>
-            setCurrentImageIndex((prev) =>
-              prev === product.Images.length - 1 ? 0 : prev + 1
-            )
-          }
-          className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/60 px-3 py-2 text-white"
-        >
-          →
-        </button>
-
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs text-white">
-          {currentImageIndex + 1} / {product.Images.length}
-        </div>
-      </>
-    )}
-  </div>
-)}
-
-
-
-        {/* Nombre */}
-        <h1 className="text-base text-gray-500 mb-1">
-          {product.Text}
-        </h1>
-
-        {/* Precio */}
-        <p className="text-xl font-bold mb-2">
-          Q{product.price}
+        <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-600">
+          {product.description}
         </p>
-
-       {/* Descripción */}
-        <div className="mb-6 rounded-2xl bg-gray-50 p-4 text-left">
-          <h2 className="mb-3 text-sm font-bold text-gray-900">
-            Descripción
-          </h2>
-
-          <p className="whitespace-pre-line text-sm leading-6 text-gray-700">
-            {product.description}
-          </p>
-        </div>
-
-        {/* BOTÓN PRINCIPAL */}
-        <button
-          onClick={handleApartar}
-          className="w-full bg-green-600 text-white py-4 rounded-2xl font-semibold transition hover:scale-[1.02]"
-        >
-          Apartar
-        </button>
-
-        {/* VOLVER */}
-        <button
-          onClick={() => window.history.back()}
-          className="w-full mt-3 text-sm text-gray-500"
-        >
-          ← Volver a la tienda
-        </button>
-        
-
       </div>
+    )}
+
+    {/* BOTÓN PRINCIPAL */}
+    <button
+      onClick={handleApartar}
+      className="mx-auto mt-6 flex w-full max-w-xs items-center justify-center gap-2 rounded-2xl bg-green-600 py-4 text-sm font-semibold text-white shadow-sm transition active:scale-[0.98] sm:hover:bg-green-700"
+
+    >
+      <Lock size={17}/>
+      Apartar prenda
+    </button>
+
+    {/* VOLVER */}
+    <button
+      onClick={() => window.history.back()}
+      className="mx-auto mt-3 block w-full max-w-xs rounded-2xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-600 transition active:scale-[0.98] sm:hover:bg-gray-50"
+
+    >
+      ← Volver a la tienda
+    </button>
+  </div>
+</div>
+
 
       {/* MODAL */}
       <CartModal
