@@ -28,7 +28,7 @@ export default function PredioHeader({ predio }: Props) {
       </div>
 
       <div className="relative px-5 pb-6 sm:px-6 sm:pb-7">
-        <div className="-mt-11 flex flex-col gap-5 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between">
+        <div className="-mt-11 flex flex-col items-start gap-5 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-end gap-4">
             <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-3xl border-4 border-white bg-white shadow-xl sm:h-24 sm:w-24">
               {predio.logo?.cardUrl ? (
@@ -58,7 +58,7 @@ export default function PredioHeader({ predio }: Props) {
           </div>
 
           <a
-            className={`inline-flex items-center justify-center rounded-2xl border px-5 py-3 text-sm font-black transition active:scale-[0.99] ${
+  className={`inline-flex w-fit max-w-full items-center justify-center rounded-2xl border px-5 py-3 text-sm font-black transition active:scale-[0.99] ${
               waLink
                 ? "border-green-700 bg-green-600 text-white shadow-lg shadow-green-600/20 hover:bg-green-700"
                 : "pointer-events-none border-slate-200 bg-slate-100 text-slate-400"

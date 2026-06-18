@@ -61,14 +61,14 @@ export default async function VehicleDetailPage({ params }: PageProps) {
   const contactUrl = `/predios/${predio.slug}/vehiculos/${vehiculo.documentId}/contactar`;
 
   return (
-    <main className="min-h-screen bg-slate-50 px-3 py-4 sm:px-4 sm:py-8">
-      <div className="mx-auto max-w-6xl">
-        <header className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <main className="min-h-screen overflow-x-hidden bg-slate-50 px-3 py-4 sm:px-4 sm:py-8">
+      <div className="mx-auto w-full max-w-6xl">
+        <header className="mb-4 flex items-center justify-between gap-3">
           <Link
             href={`/predios/${predio.slug}`}
-            className="inline-flex items-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-900 shadow-sm transition hover:bg-slate-50"
+            className="inline-flex w-fit items-center rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.99]"
           >
-            ← Volver al predio
+            ← Volver
           </Link>
 
           <div className="text-xs font-black text-slate-500">
@@ -76,71 +76,78 @@ export default async function VehicleDetailPage({ params }: PageProps) {
           </div>
         </header>
 
-        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg">
-          <div className="grid gap-0 lg:grid-cols-[1.25fr_0.75fr]">
-            <VehicleDetailGallery
-              images={vehiculo.galeria}
-              title={vehiculo.titulo}
-            />
+        <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
+          <div className="grid min-w-0 gap-0 xl:grid-cols-[1.15fr_0.85fr]">
+            <div className="min-w-0">
+              <VehicleDetailGallery
+                images={vehiculo.galeria}
+                title={vehiculo.titulo}
+              />
+            </div>
 
-            <aside className="p-5 sm:p-6">
-              <div className="text-xs font-black uppercase tracking-wide text-slate-500">
+            <aside className="min-w-0 border-t border-slate-200 p-5 sm:p-6 xl:border-l xl:border-t-0">
+              <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
                 {predio.nombre}
               </div>
 
-              <h1 className="mt-2 text-2xl font-black leading-tight tracking-tight text-slate-950 sm:text-3xl">
+              <h1 className="mt-2 break-words text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl">
                 {vehiculo.titulo}
               </h1>
 
-              <div className="mt-4">
+              <p className="mt-1 text-sm font-bold text-slate-500">
+                {[vehiculo.marca, vehiculo.modelo, vehiculo.anio]
+                  .filter(Boolean)
+                  .join(" · ") || "Datos por completar"}
+              </p>
+
+              <div className="mt-5">
                 <VehiclePriceBox vehicle={vehiculo} size="lg" />
               </div>
 
-              <div className="mt-5 grid gap-2">
+              <div className="mt-5 flex flex-wrap items-center gap-3">
                 <VehicleWhatsappButton
                   href={contactUrl}
                   vehicle={vehiculo}
+                  label="Contactar"
                 />
 
                 <Link
                   href={`/predios/${predio.slug}`}
-                  className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-4 text-sm font-black text-slate-900 shadow-sm transition hover:bg-slate-50"
+                  className="inline-flex w-fit max-w-full items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.99]"
                 >
-                  Ver más vehículos del predio
+                  Ver más vehículos
                 </Link>
               </div>
 
-              <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                <h2 className="text-sm font-black uppercase tracking-wide text-slate-500">
+              <section className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <h2 className="text-sm font-black uppercase tracking-[0.14em] text-slate-500">
                   Características
                 </h2>
 
                 <div className="mt-4">
                   <VehicleFeatureList vehicle={vehiculo} />
                 </div>
-              </div>
+              </section>
 
               {vehiculo.descripcion ? (
-                <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
-                  <h2 className="text-sm font-black uppercase tracking-wide text-slate-500">
+                <section className="mt-5 rounded-3xl border border-slate-200 bg-white p-4">
+                  <h2 className="text-sm font-black uppercase tracking-[0.14em] text-slate-500">
                     Descripción
                   </h2>
 
-                  <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                  <div className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-700">
                     {vehiculo.descripcion}
                   </div>
-                </div>
+                </section>
               ) : null}
 
-              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
-                <div className="font-black text-slate-950">
-                  {predio.nombre}
-                </div>
+              <section className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
+                <div className="font-black text-slate-950">{predio.nombre}</div>
 
-                <div className="mt-1">
+                <div className="mt-1 break-words">
                   {predio.direccion || "Dirección no definida"}
                 </div>
-              </div>
+              </section>
             </aside>
           </div>
         </section>
