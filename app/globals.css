@@ -43,6 +43,28 @@ body {
     opacity: 0.35;
   }
 }
+@keyframes drawVehicleLine {
+  0% {
+    stroke-dashoffset: 420;
+    opacity: 0.25;
+  }
+
+  45% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.45;
+  }
+}
+
+.vehicle-line-draw {
+  stroke-dasharray: 420;
+  stroke-dashoffset: 420;
+  animation: drawVehicleLine 2.2s ease-in-out infinite;
+}
 
 
 }
