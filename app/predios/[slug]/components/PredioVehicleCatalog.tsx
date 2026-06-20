@@ -82,7 +82,7 @@ function VehicleHorizontalSection({
   <div
     ref={scrollRef}
     onScroll={handleScroll}
-    className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 pr-[18%] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
   >
     {vehicles.map((vehiculo) => (
       <div
