@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import type { PredioFilters, PredioVehicle } from "@/lib/predios/types";
 import {
   filterPredioVehicles,
@@ -16,14 +16,103 @@ type Props = {
   vehicles: PredioVehicle[];
 };
 
+type VehicleSectionProps = {
+  title: string;
+  description: string;
+  vehicles: PredioVehicle[];
+  slug: string;
+};
+
 function hasActiveFilters(filters: PredioFilters) {
   return Object.values(filters).some((value) => String(value || "").trim());
 }
+
+function VehicleHorizontalSection({
+  title,
+  description,
+  vehicles,
+  slug,
+}: VehicleSectionProps) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  if (vehicles.length === 0) return null;
+
+  function scrollVehicles(direction: "left" | "right") {
+    const container = scrollRef.current;
+
+    if (!container) return;
+
+    const scrollAmount = Math.round(container.clientWidth * 0.82);
+
+    container.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  }
+
+  return (
+    <section className="rounded-[1.75rem] border border-slate-200 bg-slate-50/70 p-4">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-black tracking-tight text-slate-950">
+            {title}
+          </h3>
+
+          <p className="mt-1 text-sm font-medium text-slate-500">
+            {description}
+          </p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => scrollVehicles("left")}
+            className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-xl font-black text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
+            aria-label={`Ver vehículos anteriores en ${title}`}
+          >
+            ‹
+          </button>
+
+          <button
+            type="button"
+            onClick={() => scrollVehicles("right")}
+            className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-xl font-black text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
+            aria-label={`Ver más vehículos en ${title}`}
+          >
+            ›
+          </button>
+        </div>
+      </div>
+
+    <div
+  ref={scrollRef}
+  className="-mx-4 overflow-x-scroll overscroll-x-contain pl-4 pr-10 pb-2 [scrollbar-width:none] [touch-action:pan-x] [&::-webkit-scrollbar]:hidden"
+>
+  <div className="flex w-max snap-x snap-mandatory gap-4">
+    {vehicles.map((vehiculo) => (
+      <div
+        key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
+        className="group relative w-[72vw] shrink-0 snap-start overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl hover:ring-blue-200 active:scale-[0.99] sm:w-[360px] lg:w-[380px]"
+      >
+              <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80 transition group-hover:w-2" />
+
+              <div className="relative">
+                <VehicleCard vehiculo={vehiculo} slug={slug} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 
 export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
   const [filters, setFilters] = useState<PredioFilters>(
     getDefaultPredioFilters()
   );
+
   const [showFilters, setShowFilters] = useState(false);
 
   const filterOptions = useMemo(() => {
@@ -34,8 +123,23 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
 
   const filteredVehicles = useMemo(() => {
     if (!hasActiveFilters(filters)) return vehicles;
+
     return filterPredioVehicles(vehicles, filters);
   }, [vehicles, filters]);
+
+  const groupedVehicles = useMemo(() => {
+    return {
+      disponibles: filteredVehicles.filter(
+        (vehiculo) => vehiculo.estado === "disponible"
+      ),
+      enRuta: filteredVehicles.filter(
+        (vehiculo) => vehiculo.estado === "en_ruta"
+      ),
+      vendidos: filteredVehicles.filter(
+        (vehiculo) => vehiculo.estado === "vendido"
+      ),
+    };
+  }, [filteredVehicles]);
 
   const hasVehicles = vehicles.length > 0;
   const hasFilteredVehicles = filteredVehicles.length > 0;
@@ -63,11 +167,11 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-xl font-black tracking-tight text-slate-950">
-            Vehículos disponibles
+            Inventario del predio
           </h2>
 
           <p className="mt-1 text-sm text-slate-500">
-            Explora el inventario publicado por este predio.
+            Explora los vehículos disponibles, en ruta y vendidos.
           </p>
         </div>
 
@@ -131,19 +235,27 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
           </button>
         </div>
       ) : (
-        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2">
-          {filteredVehicles.map((vehiculo) => (
-            <div
-              key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
-              className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl hover:ring-blue-200 active:scale-[0.99]"
-            >
-              <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80 transition group-hover:w-2" />
+        <div className="grid gap-5">
+          <VehicleHorizontalSection
+            title="Disponibles"
+            description="Vehículos listos para consultar o comprar."
+            vehicles={groupedVehicles.disponibles}
+            slug={slug}
+          />
 
-              <div className="relative">
-                <VehicleCard vehiculo={vehiculo} slug={slug} />
-              </div>
-            </div>
-          ))}
+          <VehicleHorizontalSection
+            title="En ruta"
+            description="Vehículos que vienen en camino al predio."
+            vehicles={groupedVehicles.enRuta}
+            slug={slug}
+          />
+
+          <VehicleHorizontalSection
+            title="Vendidos"
+            description="Historial reciente de vehículos ya vendidos."
+            vehicles={groupedVehicles.vendidos}
+            slug={slug}
+          />
         </div>
       )}
 

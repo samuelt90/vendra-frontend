@@ -27,6 +27,27 @@ function getStatusRibbonClasses(estado: PredioVehicle["estado"]) {
   return "bg-emerald-600 text-white";
 }
 
+function formatKilometraje(value: string) {
+  if (!value) return "";
+
+  const numberValue = Number(value);
+
+  if (!Number.isFinite(numberValue)) {
+    return `${value} km`;
+  }
+
+  return `${numberValue.toLocaleString("es-GT")} km`;
+}
+
+function normalizeFeature(value: string) {
+  if (!value) return "";
+
+  return value
+    .replace(/_/g, " ")
+    .trim()
+    .replace(/^./, (letter) => letter.toUpperCase());
+}
+
 export default function VehicleCard({ vehiculo, slug }: Props) {
   const router = useRouter();
   const [showDetails, setShowDetails] = useState(false);
@@ -37,35 +58,28 @@ export default function VehicleCard({ vehiculo, slug }: Props) {
   const statusLabel = getPredioVehicleStatusLabel(vehiculo.estado);
   const ribbonClasses = getStatusRibbonClasses(vehiculo.estado);
 
-  const detailButtonLabel =
-    vehiculo.estado === "vendido"
-      ? "Ver vehículo vendido"
-      : "Ver detalles del vehículo";
-
   const mainImage = vehiculo.cover ?? vehiculo.galeria[0] ?? null;
+
+  const previewFeatures = [
+    formatKilometraje(vehiculo.kilometraje),
+    normalizeFeature(vehiculo.transmision),
+    normalizeFeature(vehiculo.combustible),
+  ].filter(Boolean);
+
+  const viewVehicleLabel =
+    vehiculo.estado === "vendido" ? "Ver vehículo vendido" : "Ver vehículo";
+
+  const contactLabel =
+    vehiculo.estado === "vendido"
+      ? "Vendido"
+      : vehiculo.estado === "en_ruta"
+        ? "Consultar"
+        : "Contactar";
 
   return (
     <article className="rounded-3xl bg-white p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="line-clamp-2 text-lg font-black leading-tight tracking-tight text-slate-950">
-            {vehiculo.titulo || "Vehículo"}
-          </h3>
-
-          <p className="mt-1 text-sm font-semibold text-slate-500">
-            {[vehiculo.marca, vehiculo.modelo, vehiculo.anio]
-              .filter(Boolean)
-              .join(" · ") || "Datos por completar"}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <VehiclePriceBox vehicle={vehiculo} />
-      </div>
-
-      <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
-        <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-slate-100">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100">
+        <div className="relative flex aspect-[16/9] w-full items-center justify-center overflow-hidden bg-slate-100">
           <div
             className={`absolute -left-12 top-5 z-10 w-44 -rotate-45 py-1.5 text-center text-[11px] font-black uppercase tracking-wide shadow-md ${ribbonClasses}`}
           >
@@ -87,13 +101,42 @@ export default function VehicleCard({ vehiculo, slug }: Props) {
       </div>
 
       <div className="mt-4">
+        <h3 className="line-clamp-2 text-base font-black leading-tight tracking-tight text-slate-950">
+          {vehiculo.titulo || "Vehículo"}
+        </h3>
+
+        <p className="mt-1 text-sm font-semibold text-slate-500">
+          {[vehiculo.marca, vehiculo.modelo, vehiculo.anio]
+            .filter(Boolean)
+            .join(" · ") || "Datos por completar"}
+        </p>
+      </div>
+
+      <div className="mt-4">
+        <VehiclePriceBox vehicle={vehiculo} />
+      </div>
+
+      {previewFeatures.length > 0 ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {previewFeatures.map((feature) => (
+            <span
+              key={feature}
+              className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-black text-slate-700"
+            >
+              {feature}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="mt-4">
         {!showDetails ? (
           <button
             type="button"
             onClick={() => setShowDetails(true)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800 active:scale-[0.99]"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-black text-slate-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800 active:scale-[0.99]"
           >
-            {detailButtonLabel}
+            Ver características
           </button>
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
@@ -119,7 +162,7 @@ export default function VehicleCard({ vehiculo, slug }: Props) {
                 onClick={() => router.push(detailUrl)}
                 className="rounded-2xl border border-blue-700 bg-blue-600 px-3 py-3 text-sm font-black text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700 active:scale-[0.99]"
               >
-                Ver vehículo
+                {viewVehicleLabel}
               </button>
 
               <button
@@ -128,11 +171,7 @@ export default function VehicleCard({ vehiculo, slug }: Props) {
                 disabled={vehiculo.estado === "vendido"}
                 className="rounded-2xl border border-green-700 bg-green-600 px-3 py-3 text-sm font-black text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none"
               >
-                {vehiculo.estado === "vendido"
-                  ? "Vendido"
-                  : vehiculo.estado === "en_ruta"
-                    ? "Consultar"
-                    : "Contactar"}
+                {contactLabel}
               </button>
             </div>
           </div>
