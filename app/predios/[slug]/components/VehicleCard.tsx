@@ -13,7 +13,9 @@ import {
 type Props = {
   vehiculo: PredioVehicle;
   slug: string;
+  onOpenQuickView?: (vehiculo: PredioVehicle) => void;
 };
+
 
 function getStatusRibbonClasses(estado: PredioVehicle["estado"]) {
   if (estado === "en_ruta") {
@@ -48,7 +50,11 @@ function normalizeFeature(value: string) {
     .replace(/^./, (letter) => letter.toUpperCase());
 }
 
-export default function VehicleCard({ vehiculo, slug }: Props) {
+export default function VehicleCard({
+  vehiculo,
+  slug,
+  onOpenQuickView,
+}: Props) {
   const router = useRouter();
   const [showDetails, setShowDetails] = useState(false);
 
@@ -133,7 +139,16 @@ export default function VehicleCard({ vehiculo, slug }: Props) {
         {!showDetails ? (
           <button
             type="button"
-            onClick={() => setShowDetails(true)}
+            onClick={() => {
+              const isMobile = window.innerWidth < 640;
+
+              if (isMobile && onOpenQuickView) {
+                onOpenQuickView(vehiculo);
+                return;
+              }
+
+              setShowDetails(true);
+            }}
             className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-black text-slate-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800 active:scale-[0.99]"
           >
             Ver características

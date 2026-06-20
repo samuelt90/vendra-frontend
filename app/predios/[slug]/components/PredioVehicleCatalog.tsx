@@ -10,6 +10,7 @@ import {
 import EmptyVehiclesState from "./EmptyVehiclesState";
 import PredioVehicleFilters from "./PredioVehicleFilters";
 import VehicleCard from "./VehicleCard";
+import VehicleQuickViewModal from "./VehicleQuickViewModal";
 
 type Props = {
   slug: string;
@@ -21,6 +22,7 @@ type VehicleSectionProps = {
   description: string;
   vehicles: PredioVehicle[];
   slug: string;
+  onOpenQuickView?: (vehiculo: PredioVehicle) => void;
 };
 
 function hasActiveFilters(filters: PredioFilters) {
@@ -32,6 +34,7 @@ function VehicleHorizontalSection({
   description,
   vehicles,
   slug,
+  onOpenQuickView,
 }: VehicleSectionProps) {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -89,7 +92,7 @@ function VehicleHorizontalSection({
         <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80" />
 
         <div className="relative">
-          <VehicleCard vehiculo={vehiculo} slug={slug} />
+          <VehicleCard vehiculo={vehiculo} slug={slug} onOpenQuickView={onOpenQuickView}/>
         </div>
       </div>
     ))}
@@ -116,7 +119,7 @@ function VehicleHorizontalSection({
             <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80 transition group-hover:w-2" />
 
             <div className="relative">
-              <VehicleCard vehiculo={vehiculo} slug={slug} />
+              <VehicleCard vehiculo={vehiculo} slug={slug} onOpenQuickView={onOpenQuickView}/>
             </div>
           </div>
         ))}
@@ -125,15 +128,15 @@ function VehicleHorizontalSection({
   );
 }
 
-
-
-
 export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
   const [filters, setFilters] = useState<PredioFilters>(
     getDefaultPredioFilters()
   );
 
   const [showFilters, setShowFilters] = useState(false);
+
+  const [quickViewVehicle, setQuickViewVehicle] =
+  useState<PredioVehicle | null>(null);
 
   const filterOptions = useMemo(() => {
     return getPredioFilterOptions(vehicles);
@@ -180,6 +183,7 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
   }
 
   return (
+    <>
     <section
       id="vehiculos"
       className="relative mt-5 overflow-x-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-lg sm:p-6"
@@ -261,6 +265,7 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
             description="Vehículos listos para consultar o comprar."
             vehicles={groupedVehicles.disponibles}
             slug={slug}
+            onOpenQuickView={setQuickViewVehicle}
           />
 
           <VehicleHorizontalSection
@@ -268,6 +273,7 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
             description="Vehículos que vienen en camino al predio."
             vehicles={groupedVehicles.enRuta}
             slug={slug}
+            onOpenQuickView={setQuickViewVehicle}
           />
 
           <VehicleHorizontalSection
@@ -275,6 +281,7 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
             description="Historial reciente de vehículos ya vendidos."
             vehicles={groupedVehicles.vendidos}
             slug={slug}
+            onOpenQuickView={setQuickViewVehicle}
           />
         </div>
       )}
@@ -339,5 +346,11 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
         </div>
       ) : null}
     </section>
+    <VehicleQuickViewModal
+  vehicle={quickViewVehicle}
+  slug={slug}
+  onClose={() => setQuickViewVehicle(null)}
+  />
+  </>
   );
 }
