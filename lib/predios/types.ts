@@ -1,4 +1,4 @@
-export type PredioEstadoVehiculo = "disponible" | "vendido";
+export type PredioEstadoVehiculo = "disponible" | "en_ruta" | "vendido";
 
 export type PredioMoneda = "GTQ" | "USD" | string;
 
@@ -84,3 +84,26 @@ export type PredioFilters = {
   precioMin: string;
   precioMax: string;
 };
+
+export function getPredioVehicleStatusLabel(
+  estado: PredioEstadoVehiculo
+): string {
+  if (estado === "en_ruta") return "En ruta";
+  if (estado === "vendido") return "Vendido";
+
+  return "Disponible";
+}
+
+export function getPredioVehicleStatusClasses(
+  estado: PredioEstadoVehiculo
+): string {
+  if (estado === "en_ruta") {
+    return "border-blue-200 bg-blue-50 text-blue-700";
+  }
+
+  if (estado === "vendido") {
+    return "border-slate-300 bg-slate-100 text-slate-700";
+  }
+
+  return "border-emerald-200 bg-emerald-50 text-emerald-700";
+}

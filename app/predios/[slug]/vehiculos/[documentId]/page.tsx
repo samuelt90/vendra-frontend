@@ -90,7 +90,7 @@ export default async function VehicleDetailPage({ params }: PageProps) {
                 {predio.nombre}
               </div>
 
-              <h1 className="mt-2 break-words text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl">
+              <h1 className="mt-2 break-words text-2xl font-black leading-tight tracking-tight text-slate-950 sm:text-3xl">
                 {vehiculo.titulo}
               </h1>
 
@@ -141,13 +141,13 @@ export default async function VehicleDetailPage({ params }: PageProps) {
                 </section>
               ) : null}
 
-              <section className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
-                <div className="font-black text-slate-950">{predio.nombre}</div>
+              <section className="mt-6 border-t border-slate-200 pt-5 text-sm leading-relaxed text-slate-600">
+              <div className="font-black text-slate-950">{predio.nombre}</div>
 
-                <div className="mt-1 break-words">
-                  {predio.direccion || "Dirección no definida"}
-                </div>
-              </section>
+              <div className="mt-1 break-words text-slate-500">
+                {predio.direccion || "Dirección no definida"}
+              </div>
+            </section>
             </aside>
           </div>
         </section>

@@ -35,10 +35,7 @@ export default function ContactForm({ detail }: Props) {
   const resumen: [string, string][] = [
     ["Vehículo", detail.vehiculo.titulo],
     ["Marca", detail.vehiculo.marca],
-    ["Modelo", detail.vehiculo.modelo],
     ["Año", detail.vehiculo.anio],
-    ["Kilometraje", detail.vehiculo.kilometraje],
-    ["Transmisión", detail.vehiculo.transmision],
     ["Precio", `${detail.vehiculo.precio} ${detail.vehiculo.moneda}`.trim()],
   ];
 
@@ -95,14 +92,16 @@ export default function ContactForm({ detail }: Props) {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => window.open(waLink, "_blank")}
-        disabled={!canSend}
-        className="mt-4 w-full rounded-2xl border border-black/5 bg-green-600 px-4 py-4 font-black tracking-wide text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-green-200 disabled:text-green-900 disabled:shadow-none"
-      >
-        Enviar mensaje por WhatsApp
-      </button>
+          <div className="mt-4 flex justify-center">
+          <button
+            type="button"
+            onClick={() => window.open(waLink, "_blank")}
+            disabled={!canSend}
+            className="inline-flex w-fit max-w-full items-center justify-center rounded-2xl border border-black/5 bg-green-600 px-5 py-3 text-sm font-black tracking-wide text-white shadow-md shadow-green-600/20 transition hover:bg-green-700 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-green-200 disabled:text-green-900 disabled:shadow-none"
+          >
+            Contactar por WhatsApp
+          </button>
+        </div>
 
       {!canSend && (
         <div className="mt-3 text-xs leading-relaxed text-gray-500">

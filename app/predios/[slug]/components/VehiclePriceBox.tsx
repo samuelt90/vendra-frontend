@@ -20,34 +20,20 @@ function formatPrice(precio: string, moneda: string) {
 }
 
 export default function VehiclePriceBox({ vehicle, size = "sm" }: Props) {
-  const isSold = vehicle.estado === "vendido";
-
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <div
-          className={
-            size === "lg"
-              ? "text-3xl font-black text-slate-950"
-              : "text-xl font-black text-slate-950"
-          }
-        >
-          {formatPrice(vehicle.precio, vehicle.moneda)}
-        </div>
-
-        <div className="mt-1 text-xs font-bold text-slate-500">
-          Precio publicado por el vendedor
-        </div>
+    <div>
+      <div
+        className={
+          size === "lg"
+            ? "break-words text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl"
+            : "break-words text-xl font-black text-slate-950"
+        }
+      >
+        {formatPrice(vehicle.precio, vehicle.moneda)}
       </div>
 
-      <div
-        className={`rounded-full border px-3 py-1 text-xs font-black uppercase ${
-          isSold
-            ? "border-red-200 bg-red-50 text-red-700"
-            : "border-emerald-200 bg-emerald-50 text-emerald-700"
-        }`}
-      >
-        {vehicle.estado}
+      <div className="mt-1 text-sm font-bold text-slate-500">
+        Precio publicado por el vendedor
       </div>
     </div>
   );

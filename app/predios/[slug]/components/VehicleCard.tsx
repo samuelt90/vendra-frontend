@@ -2,10 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { PredioVehicle } from "@/lib/predios/types";
 import VehicleFeatureList from "./VehicleFeatureList";
 import VehicleGallery from "./VehicleGallery";
 import VehiclePriceBox from "./VehiclePriceBox";
+import {
+  getPredioVehicleStatusClasses,
+  getPredioVehicleStatusLabel,
+  type PredioVehicle,
+} from "@/lib/predios/types";
 
 type Props = {
   vehiculo: PredioVehicle;
@@ -18,6 +22,13 @@ export default function VehicleCard({ vehiculo, slug }: Props) {
 
   const detailUrl = `/predios/${slug}/vehiculos/${vehiculo.documentId}`;
   const contactUrl = `/predios/${slug}/vehiculos/${vehiculo.documentId}/contactar`;
+  const statusLabel = getPredioVehicleStatusLabel(vehiculo.estado);
+  const statusClasses = getPredioVehicleStatusClasses(vehiculo.estado);
+
+const detailButtonLabel =
+  vehiculo.estado === "vendido"
+    ? "Ver vehículo vendido"
+    : "Ver detalles del vehículo";
 
   return (
     <article className="rounded-3xl bg-white p-4">
@@ -40,6 +51,14 @@ export default function VehicleCard({ vehiculo, slug }: Props) {
       </div>
 
       <div className="mt-4">
+        <span
+          className={`inline-flex w-fit items-center rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wide ${statusClasses}`}
+        >
+          {statusLabel}
+        </span>
+      </div>
+
+      <div className="mt-3">
         <VehicleGallery images={vehiculo.galeria} title={vehiculo.titulo} />
       </div>
 
@@ -50,7 +69,7 @@ export default function VehicleCard({ vehiculo, slug }: Props) {
             onClick={() => setShowDetails(true)}
             className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-black text-slate-900 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800 active:scale-[0.99]"
           >
-            Ver detalles del vehículo
+           {detailButtonLabel}
           </button>
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">

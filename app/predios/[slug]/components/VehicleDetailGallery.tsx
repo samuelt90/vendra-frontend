@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { PredioVehicleImage } from "@/lib/predios/types";
 
 type Props = {
@@ -9,162 +9,233 @@ type Props = {
   title: string;
 };
 
+const HIDE_CONTROLS_DELAY = 2600;
+const SWIPE_MIN_DISTANCE = 45;
+
 export default function VehicleDetailGallery({ images, title }: Props) {
-  const gallery = useMemo(() => images.filter(Boolean), [images]);
-  const total = gallery.length;
+  const fotos = useMemo(() => images ?? [], [images]);
+  const fotosCount = fotos.length;
 
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
+  const [idx, setIdx] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [mobileArrowsVisible, setMobileArrowsVisible] = useState(true);
 
-  const safeIndex = total === 0 ? 0 : Math.min(selectedIndex, total - 1);
-  const currentImage = total > 0 ? gallery[safeIndex] : null;
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
-  function goPrev() {
-    if (total <= 1) return;
-    setSelectedIndex((value) => (value - 1 + total) % total);
+  const safeIdx = fotosCount === 0 ? 0 : Math.min(idx, fotosCount - 1);
+  const currentPhoto = fotosCount > 0 ? fotos[safeIdx] : null;
+  const hasMultiplePhotos = fotosCount > 1;
+
+  function showMobileArrowsTemporarily() {
+    setMobileArrowsVisible(true);
   }
 
-  function goNext() {
-    if (total <= 1) return;
-    setSelectedIndex((value) => (value + 1) % total);
+  function prev() {
+    if (!hasMultiplePhotos) return;
+    setIdx((value) => (value - 1 + fotosCount) % fotosCount);
+    showMobileArrowsTemporarily();
   }
 
-  function selectImage(index: number) {
-    setSelectedIndex(index);
+  function next() {
+    if (!hasMultiplePhotos) return;
+    setIdx((value) => (value + 1) % fotosCount);
+    showMobileArrowsTemporarily();
   }
+
+  function openModal() {
+    if (!currentPhoto) return;
+    setModalOpen(true);
+    setMobileArrowsVisible(true);
+  }
+
+  function closeModal() {
+    setModalOpen(false);
+  }
+
+  function handleTouchStart(event: React.TouchEvent) {
+    const touch = event.touches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+  }
+
+  function handleTouchEnd(event: React.TouchEvent) {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const touch = event.changedTouches[0];
+    const diffX = touch.clientX - touchStartX.current;
+    const diffY = touch.clientY - touchStartY.current;
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    const isHorizontalSwipe = Math.abs(diffX) > Math.abs(diffY);
+
+    if (!isHorizontalSwipe || Math.abs(diffX) < SWIPE_MIN_DISTANCE) {
+      showMobileArrowsTemporarily();
+      return;
+    }
+
+    if (diffX > 0) {
+      prev();
+    } else {
+      next();
+    }
+  }
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    if (!mobileArrowsVisible) return;
+
+    const timeout = window.setTimeout(() => {
+      setMobileArrowsVisible(false);
+    }, HIDE_CONTROLS_DELAY);
+
+    return () => window.clearTimeout(timeout);
+  }, [modalOpen, mobileArrowsVisible, safeIdx]);
+
+  useEffect(() => {
+    if (!modalOpen) return;
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") closeModal();
+      if (event.key === "ArrowLeft") prev();
+      if (event.key === "ArrowRight") next();
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalOpen, fotosCount]);
 
   return (
     <>
-      <div className="border-b border-slate-200 bg-slate-100 p-3 lg:border-b-0 lg:border-r">
+      <section className="min-w-0 bg-white p-3 sm:p-4">
         <button
           type="button"
-          onClick={() => currentImage && setIsOpen(true)}
-          className="relative flex min-h-[330px] w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white sm:min-h-[480px]"
+          onClick={openModal}
+          className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-[1.5rem] bg-slate-100"
         >
-          {currentImage?.detailUrl ? (
+          {currentPhoto?.detailUrl ? (
             <Image
-              src={currentImage.detailUrl}
-              alt={currentImage.alt || title}
-              width={1200}
-              height={800}
+              src={currentPhoto.detailUrl}
+              alt={currentPhoto.alt || title || "Vehículo"}
+              fill
               priority
-              sizes="(max-width: 1024px) 100vw, 65vw"
-              className="h-auto max-h-[680px] w-full object-contain"
+              sizes="(max-width: 768px) 100vw, 60vw"
+              className="object-contain"
             />
           ) : (
-            <div className="text-sm font-bold text-slate-500">Sin imagen</div>
+            <div className="text-sm font-bold text-white/70">Sin imagen</div>
           )}
 
-          {currentImage ? (
-            <div className="absolute bottom-4 left-4 rounded-full border border-black/10 bg-white/90 px-3 py-1 text-xs font-black text-slate-900 shadow-sm">
+          {currentPhoto ? (
+            <div className="absolute bottom-3 left-3 rounded-full border border-white/10 bg-black/55 px-3 py-1 text-xs font-black text-white backdrop-blur">
               Toca para ampliar
             </div>
           ) : null}
 
-          {total > 0 ? (
-            <div className="absolute bottom-4 right-4 rounded-full border border-black/10 bg-white/90 px-3 py-1 text-xs font-black text-slate-900 shadow-sm">
-              {safeIndex + 1}/{total}
+          {fotosCount > 0 ? (
+            <div className="absolute bottom-3 right-3 rounded-full border border-white/10 bg-black/55 px-3 py-1 text-xs font-black text-white backdrop-blur">
+              {safeIdx + 1}/{fotosCount}
             </div>
           ) : null}
         </button>
 
-        {total > 1 ? (
-          <div className="mt-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={goPrev}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-300 bg-white text-xl font-black text-slate-900 shadow-sm transition hover:bg-slate-50"
-              aria-label="Imagen anterior"
-            >
-              ‹
-            </button>
-
-            <div className="flex flex-1 gap-2 overflow-x-auto pb-1">
-              {gallery.map((image, index) => (
-                <button
-                  key={`${image.id}-${index}`}
-                  type="button"
-                  onClick={() => selectImage(index)}
-                  className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-xl border bg-white transition ${
-                    index === safeIndex
-                      ? "border-blue-600 ring-2 ring-blue-600/20"
-                      : "border-slate-200 hover:border-slate-400"
-                  }`}
-                  aria-label={`Ver imagen ${index + 1}`}
-                >
-                  <Image
-                    src={image.cardUrl}
-                    alt={image.alt || title}
-                    fill
-                    sizes="96px"
-                    className="object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={goNext}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-slate-300 bg-white text-xl font-black text-slate-900 shadow-sm transition hover:bg-slate-50"
-              aria-label="Imagen siguiente"
-            >
-              ›
-            </button>
+        {fotosCount > 1 ? (
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            {fotos.map((photo, photoIndex) => (
+              <button
+                key={`${photo.id}-${photoIndex}`}
+                type="button"
+                onClick={() => setIdx(photoIndex)}
+                className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-2xl border transition ${
+                  photoIndex === safeIdx
+                    ? "border-white ring-2 ring-white/40"
+                    : "border-white/10 opacity-70 hover:opacity-100"
+                }`}
+              >
+                <Image
+                  src={photo.cardUrl || photo.detailUrl}
+                  alt={photo.alt || title || "Vehículo"}
+                  fill
+                  sizes="80px"
+                  className="object-cover"
+                />
+              </button>
+            ))}
           </div>
         ) : null}
-      </div>
+      </section>
 
-      {isOpen && currentImage ? (
-        <div className="fixed inset-0 z-50 bg-black/90 p-3">
-          <div className="flex h-full flex-col">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="rounded-full bg-white/10 px-3 py-2 text-xs font-black text-white">
-                {safeIndex + 1}/{total}
-              </div>
+      {modalOpen && currentPhoto ? (
+        <div
+          className="fixed inset-0 z-[100] bg-black"
+          onClick={showMobileArrowsTemporarily}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              closeModal();
+            }}
+            className="absolute right-4 top-4 z-20 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm font-black text-white backdrop-blur transition hover:bg-white/20"
+          >
+            Cerrar
+          </button>
+
+          <div className="absolute left-4 top-4 z-20 rounded-full border border-white/10 bg-white/10 px-3 py-2 text-xs font-black text-white backdrop-blur">
+            {safeIdx + 1}/{fotosCount}
+          </div>
+
+          <div className="relative flex h-full w-full items-center justify-center p-3 sm:p-8">
+            <Image
+              src={currentPhoto.fullUrl || currentPhoto.detailUrl}
+              alt={currentPhoto.alt || title || "Vehículo"}
+              fill
+              sizes="100vw"
+              className="object-contain"
+              priority
+            />
+          </div>
+
+          {hasMultiplePhotos ? (
+            <>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  prev();
+                }}
+                className={`absolute left-3 top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/10 bg-white/10 text-3xl font-black text-white backdrop-blur transition duration-300 hover:bg-white/20 sm:left-6 sm:h-12 sm:w-12 ${
+                  mobileArrowsVisible
+                    ? "opacity-100"
+                    : "pointer-events-none opacity-0 sm:pointer-events-auto sm:opacity-100"
+                }`}
+                aria-label="Imagen anterior"
+              >
+                ‹
+              </button>
 
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
-                className="rounded-full border border-white/20 bg-white px-4 py-2 text-sm font-black text-slate-950 shadow-lg"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  next();
+                }}
+                className={`absolute right-3 top-1/2 z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/10 bg-white/10 text-3xl font-black text-white backdrop-blur transition duration-300 hover:bg-white/20 sm:right-6 sm:h-12 sm:w-12 ${
+                  mobileArrowsVisible
+                    ? "opacity-100"
+                    : "pointer-events-none opacity-0 sm:pointer-events-auto sm:opacity-100"
+                }`}
+                aria-label="Imagen siguiente"
               >
-                Cerrar
+                ›
               </button>
-            </div>
-
-            <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-black">
-              <Image
-                src={currentImage.fullUrl || currentImage.detailUrl}
-                alt={currentImage.alt || title}
-                width={1600}
-                height={1100}
-                sizes="100vw"
-                className="h-auto max-h-full w-full object-contain"
-              />
-
-              {total > 1 ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={goPrev}
-                    className="absolute left-3 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-white/90 text-2xl font-black text-slate-950 shadow-lg"
-                    aria-label="Imagen anterior"
-                  >
-                    ‹
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={goNext}
-                    className="absolute right-3 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-white/90 text-2xl font-black text-slate-950 shadow-lg"
-                    aria-label="Imagen siguiente"
-                  >
-                    ›
-                  </button>
-                </>
-              ) : null}
-            </div>
-          </div>
+            </>
+          ) : null}
         </div>
       ) : null}
     </>
