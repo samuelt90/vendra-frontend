@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState} from "react";
 import type { PredioFilters, PredioVehicle } from "@/lib/predios/types";
 import {
   filterPredioVehicles,
@@ -33,22 +33,7 @@ function VehicleHorizontalSection({
   vehicles,
   slug,
 }: VehicleSectionProps) {
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-
   if (vehicles.length === 0) return null;
-
-  function scrollVehicles(direction: "left" | "right") {
-    const container = scrollRef.current;
-
-    if (!container) return;
-
-    const scrollAmount = Math.round(container.clientWidth * 0.82);
-
-    container.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
-  }
 
   return (
     <section className="rounded-[1.75rem] border border-slate-200 bg-slate-50/70 p-4">
@@ -63,37 +48,18 @@ function VehicleHorizontalSection({
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            onClick={() => scrollVehicles("left")}
-            className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-xl font-black text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
-            aria-label={`Ver vehículos anteriores en ${title}`}
-          >
-            ‹
-          </button>
-
-          <button
-            type="button"
-            onClick={() => scrollVehicles("right")}
-            className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-xl font-black text-slate-700 shadow-sm transition hover:bg-slate-50 active:scale-95"
-            aria-label={`Ver más vehículos en ${title}`}
-          >
-            ›
-          </button>
+        <div className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-slate-600">
+          {vehicles.length}
         </div>
       </div>
 
-    <div
-  ref={scrollRef}
-  className="-mx-4 overflow-x-scroll overscroll-x-contain pl-4 pr-10 pb-2 [scrollbar-width:none] [touch-action:pan-x] [&::-webkit-scrollbar]:hidden"
->
-  <div className="flex w-max snap-x snap-mandatory gap-4">
-    {vehicles.map((vehiculo) => (
-      <div
-        key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
-        className="group relative w-[72vw] shrink-0 snap-start overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl hover:ring-blue-200 active:scale-[0.99] sm:w-[360px] lg:w-[380px]"
-      >
+      <div className="-mx-4 overflow-x-auto overscroll-x-contain px-4 pb-2 sm:mx-0 sm:overflow-visible sm:px-0 sm:pb-0">
+        <div className="flex snap-x snap-mandatory gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-3">
+          {vehicles.map((vehiculo) => (
+            <div
+              key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
+              className="group relative w-[78vw] shrink-0 snap-start overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl hover:ring-blue-200 active:scale-[0.99] sm:w-auto sm:shrink"
+            >
               <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80 transition group-hover:w-2" />
 
               <div className="relative">
@@ -106,6 +72,7 @@ function VehicleHorizontalSection({
     </section>
   );
 }
+
 
 
 export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
@@ -162,7 +129,7 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
   return (
     <section
       id="vehiculos"
-      className="relative mt-5 overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-lg sm:p-6"
+      className="relative mt-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-lg sm:p-6"
     >
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
