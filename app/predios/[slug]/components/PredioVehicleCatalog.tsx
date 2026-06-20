@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState} from "react";
+import { useMemo, useState, useRef} from "react";
 import type { PredioFilters, PredioVehicle } from "@/lib/predios/types";
 import {
   filterPredioVehicles,
@@ -33,10 +33,31 @@ function VehicleHorizontalSection({
   vehicles,
   slug,
 }: VehicleSectionProps) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
   if (vehicles.length === 0) return null;
 
+  function handleScroll() {
+    const container = scrollRef.current;
+
+    if (!container) return;
+
+    const maxScroll = container.scrollWidth - container.clientWidth;
+
+    if (maxScroll <= 0) {
+      setScrollProgress(1);
+      return;
+    }
+
+    setScrollProgress(container.scrollLeft / maxScroll);
+  }
+
+  const progressWidth =
+    vehicles.length > 1 ? `${Math.max(22, scrollProgress * 100)}%` : "100%";
+
   return (
-    <section className="rounded-[1.75rem] border border-slate-200 bg-slate-50/70 p-4">
+    <section className="border-t border-slate-100 pt-5 sm:rounded-[1.75rem] sm:border sm:border-slate-200 sm:bg-slate-50/70 sm:p-4">
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
           <h3 className="text-lg font-black tracking-tight text-slate-950">
@@ -53,25 +74,57 @@ function VehicleHorizontalSection({
         </div>
       </div>
 
-      <div className="-mx-4 overflow-x-auto overscroll-x-contain px-4 pb-2 sm:mx-0 sm:overflow-visible sm:px-0 sm:pb-0">
-        <div className="flex snap-x snap-mandatory gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-3">
-          {vehicles.map((vehiculo) => (
-            <div
-              key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
-              className="group relative w-[78vw] shrink-0 snap-start overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl hover:ring-blue-200 active:scale-[0.99] sm:w-auto sm:shrink"
-            >
-              <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80 transition group-hover:w-2" />
+{/* Mobile: carrusel horizontal */}
+<div className="max-w-full overflow-hidden sm:hidden">
+  <div
+    ref={scrollRef}
+    onScroll={handleScroll}
+    className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+  >
+    {vehicles.map((vehiculo) => (
+      <div
+        key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
+        className="group relative min-w-[82%] snap-center overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 active:scale-[0.99]"
+      >
+        <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80" />
 
-              <div className="relative">
-                <VehicleCard vehiculo={vehiculo} slug={slug} />
-              </div>
-            </div>
-          ))}
+        <div className="relative">
+          <VehicleCard vehiculo={vehiculo} slug={slug} />
         </div>
+      </div>
+    ))}
+  </div>
+
+  {vehicles.length > 1 ? (
+    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
+      <div
+        className="h-full rounded-full bg-blue-600 transition-[width] duration-200"
+        style={{ width: progressWidth }}
+      />
+    </div>
+  ) : null}
+</div>
+
+
+      {/* Desktop: grid normal */}
+      <div className="hidden sm:grid sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
+        {vehicles.map((vehiculo) => (
+          <div
+            key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
+            className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 hover:-translate-y-1 hover:border-blue-300 hover:shadow-xl hover:ring-blue-200 active:scale-[0.99]"
+          >
+            <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80 transition group-hover:w-2" />
+
+            <div className="relative">
+              <VehicleCard vehiculo={vehiculo} slug={slug} />
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
 }
+
 
 
 
@@ -129,7 +182,7 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
   return (
     <section
       id="vehiculos"
-      className="relative mt-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-lg sm:p-6"
+      className="relative mt-5 overflow-x-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-lg sm:p-6"
     >
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>

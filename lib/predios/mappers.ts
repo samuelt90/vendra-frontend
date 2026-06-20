@@ -40,9 +40,14 @@ function blocksToPlainText(blocks: any): string {
 }
 
 function normalizeEstado(value: any): PredioEstadoVehiculo {
-  const estado = safeStr(value).toLowerCase();
+  const estado = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
 
+  if (estado === "en_ruta") return "en_ruta";
   if (estado === "vendido") return "vendido";
+
   return "disponible";
 }
 

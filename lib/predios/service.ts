@@ -16,7 +16,7 @@ type FetchResult<T> = {
 async function fetchStrapiJson(url: string) {
   const res = await fetch(url, {
     next: {
-      revalidate: 300,
+      revalidate: 5,
     },
   });
 
