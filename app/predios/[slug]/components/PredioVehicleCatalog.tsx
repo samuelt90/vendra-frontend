@@ -82,7 +82,7 @@ function VehicleHorizontalSection({
   <div
     ref={scrollRef}
     onScroll={handleScroll}
-    className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 pr-[18%] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
   >
     {vehicles.map((vehiculo) => (
       <div
@@ -92,10 +92,16 @@ function VehicleHorizontalSection({
         <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80" />
 
         <div className="relative">
-          <VehicleCard vehiculo={vehiculo} slug={slug} onOpenQuickView={onOpenQuickView}/>
+          <VehicleCard
+            vehiculo={vehiculo}
+            slug={slug}
+            onOpenQuickView={onOpenQuickView}
+          />
         </div>
       </div>
     ))}
+
+    <div className="w-[18%] shrink-0" aria-hidden="true" />
   </div>
 
   {vehicles.length > 1 ? (
