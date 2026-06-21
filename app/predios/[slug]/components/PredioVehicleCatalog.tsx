@@ -78,7 +78,7 @@ function VehicleHorizontalSection({
       </div>
 
 {/* Mobile: carrusel horizontal */}
-<div className="max-w-full overflow-hidden sm:hidden">
+<div className="w-full min-w-0 sm:hidden">
   <div
     ref={scrollRef}
     onScroll={handleScroll}
@@ -87,7 +87,7 @@ function VehicleHorizontalSection({
     {vehicles.map((vehiculo) => (
       <div
         key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
-        className="group relative w-[76vw] min-w-[76vw] max-w-[76vw] shrink-0 snap-start overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 active:scale-[0.99]"
+        className="group relative w-[50%] flex-none snap-start overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 active:scale-[0.99]"
       >
         <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80" />
 
@@ -100,9 +100,9 @@ function VehicleHorizontalSection({
         </div>
       </div>
     ))}
-
-    <div className="w-[26%] shrink-0" aria-hidden="true" />
+    <div className="w-[50%] flex-none" aria-hidden="true" />
   </div>
+
 
   {vehicles.length > 1 ? (
     <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
