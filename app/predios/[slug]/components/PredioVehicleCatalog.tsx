@@ -87,7 +87,7 @@ function VehicleHorizontalSection({
     {vehicles.map((vehiculo) => (
       <div
         key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
-        className="group relative min-w-[82%] snap-center overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 active:scale-[0.99]"
+        className="group relative min-w-[82%] snap-start overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 active:scale-[0.99]"
       >
         <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80" />
 
