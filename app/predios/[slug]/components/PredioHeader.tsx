@@ -1,12 +1,34 @@
 import Image from "next/image";
 import type { PredioCatalog } from "@/lib/predios/types";
+import PredioSocialLinks from "./PredioSocialLinks";
 
 type Props = {
   predio: PredioCatalog;
 };
 
 export default function PredioHeader({ predio }: Props) {
-  const waLink = predio.whatsapp ? `https://wa.me/${predio.whatsapp}` : "";
+  const displayName = predio.nombre
+  .trim()
+  .toLowerCase()
+  .startsWith("predio")
+  ? predio.nombre
+  : `Predio ${predio.nombre}`;
+
+const localWhatsapp = predio.whatsapp.replace(/\D/g, "");
+
+const internationalWhatsapp =
+  localWhatsapp.length === 8
+    ? `502${localWhatsapp}`
+    : localWhatsapp;
+
+const whatsappMessage =
+  `Hola, vi el catálogo de ${displayName} y quisiera información.`;
+
+const waLink = internationalWhatsapp
+  ? `https://wa.me/${internationalWhatsapp}?text=${encodeURIComponent(
+      whatsappMessage
+    )}`
+  : "";
 
   return (
     <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
@@ -51,25 +73,13 @@ export default function PredioHeader({ predio }: Props) {
                 Catálogo de vehículos
               </div>
 
-              <h1 className="text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl">
-                {predio.nombre}
+              <h1 className="translate-y-1 text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl">
+                {displayName}
               </h1>
             </div>
           </div>
 
-          <a
-  className={`inline-flex w-fit max-w-full items-center justify-center rounded-2xl border px-5 py-3 text-sm font-black transition active:scale-[0.99] ${
-              waLink
-                ? "border-green-700 bg-green-600 text-white shadow-lg shadow-green-600/20 hover:bg-green-700"
-                : "pointer-events-none border-slate-200 bg-slate-100 text-slate-400"
-            }`}
-            href={waLink || "#"}
-            target={waLink ? "_blank" : undefined}
-            rel={waLink ? "noopener noreferrer" : undefined}
-            aria-disabled={!waLink}
-          >
-            Contactar a predio
-          </a>
+         
         </div>
 
         <div className="mt-6 grid gap-5 border-t border-slate-200 pt-5 md:grid-cols-[0.8fr_1.2fr]">
@@ -80,7 +90,7 @@ export default function PredioHeader({ predio }: Props) {
               </div>
 
               <div className="mt-1 text-base font-black text-slate-950">
-                {predio.whatsapp ? `+${predio.whatsapp}` : "No definido"}
+                {predio.whatsapp ? `${predio.whatsapp}` : "No definido"}
               </div>
             </div>
 
@@ -102,6 +112,12 @@ export default function PredioHeader({ predio }: Props) {
 
             <div className="mt-2 max-w-2xl whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
               {predio.descripcion || "Este predio aún no tiene descripción."}
+              <PredioSocialLinks
+              instagram={predio.instagram}
+              facebook={predio.facebook}
+              tiktok={predio.tiktok}
+              whatsapp={waLink}
+              />
             </div>
           </div>
         </div>

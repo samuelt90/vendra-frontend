@@ -84,7 +84,7 @@ export default function PredioVehicleFilters({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-black uppercase tracking-wide text-slate-800">
-            Filtros del inventario
+            DATOS DEL VEHÍCULO
           </h3>
 
           <p className="mt-1 text-xs font-medium text-slate-500">
@@ -101,69 +101,47 @@ export default function PredioVehicleFilters({
         </button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <SelectField
-          label="Marca"
-          value={filters.marca}
-          options={options.marcas}
-          placeholder="Todas"
-          onChange={(value) => onChange("marca", value)}
-        />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  <SelectField
+    label="Marca"
+    value={filters.marca}
+    options={options.marcas}
+    placeholder="Todas"
+    onChange={(value) => onChange("marca", value)}
+  />
 
-        <SelectField
-          label="Modelo"
-          value={filters.modelo}
-          options={options.modelos}
-          placeholder="Todos"
-          onChange={(value) => onChange("modelo", value)}
-        />
+  <SelectField
+    label="Año"
+    value={filters.anio}
+    options={options.anios}
+    placeholder="Todos"
+    onChange={(value) => onChange("anio", value)}
+  />
 
-        <SelectField
-          label="Año"
-          value={filters.anio}
-          options={options.anios}
-          placeholder="Todos"
-          onChange={(value) => onChange("anio", value)}
-        />
+  <SelectField
+    label="Combustible"
+    value={filters.combustible}
+    options={options.combustibles}
+    placeholder="Todos"
+    onChange={(value) => onChange("combustible", value)}
+  />
 
-        <SelectField
-          label="Transmisión"
-          value={filters.transmision}
-          options={options.transmisiones}
-          placeholder="Todas"
-          onChange={(value) => onChange("transmision", value)}
-        />
+  <div className="grid grid-cols-2 gap-3 sm:col-span-2 lg:col-span-3">
+    <NumberField
+      label="Precio mín."
+      value={filters.precioMin}
+      placeholder="50000"
+      onChange={(value) => onChange("precioMin", value)}
+    />
 
-        <SelectField
-          label="Combustible"
-          value={filters.combustible}
-          options={options.combustibles}
-          placeholder="Todos"
-          onChange={(value) => onChange("combustible", value)}
-        />
-
-        <SelectField
-          label="Estado"
-          value={filters.estado}
-          options={options.estados}
-          placeholder="Todos"
-          onChange={(value) => onChange("estado", value)}
-        />
-
-        <NumberField
-          label="Precio mín."
-          value={filters.precioMin}
-          placeholder="Ej: 50000"
-          onChange={(value) => onChange("precioMin", value)}
-        />
-
-        <NumberField
-          label="Precio máx."
-          value={filters.precioMax}
-          placeholder="Ej: 150000"
-          onChange={(value) => onChange("precioMax", value)}
-        />
-      </div>
+    <NumberField
+      label="Precio máx."
+      value={filters.precioMax}
+      placeholder="150000"
+      onChange={(value) => onChange("precioMax", value)}
+    />
+  </div>
+</div>
     </div>
   );
 }

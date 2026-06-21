@@ -17,6 +17,9 @@ export function buildPredioCatalogQuery(slug: string) {
   params.append("fields[2]", "whatsapp");
   params.append("fields[3]", "direccion");
   params.append("fields[4]", "descripcion");
+  params.append("fields[5]", "instagram");
+  params.append("fields[6]", "facebook");
+  params.append("fields[7]", "tiktok");
 
   params.append("populate[logo][fields][0]", "url");
   params.append("populate[logo][fields][1]", "alternativeText");

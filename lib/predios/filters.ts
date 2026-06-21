@@ -8,8 +8,10 @@ function normalize(value: string) {
 
 function toNumber(value: string) {
   const clean = String(value || "").replace(/[^\d.]/g, "");
-  const num = Number(clean);
 
+  if (!clean) return null;
+
+  const num = Number(clean);
   return Number.isFinite(num) ? num : null;
 }
 

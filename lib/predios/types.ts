@@ -55,6 +55,9 @@ export type PredioCatalog = {
   nombre: string;
   slug: string;
   whatsapp: string;
+  instagram?: string;
+  facebook?:string;
+  tiktok?: string;
   direccion: string;
   descripcion: string;
   logo: PredioVehicleImage | null;
