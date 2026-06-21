@@ -101,7 +101,7 @@ function VehicleHorizontalSection({
       </div>
     ))}
 
-    <div className="w-[18%] shrink-0" aria-hidden="true" />
+    <div className="w-[26%] shrink-0" aria-hidden="true" />
   </div>
 
   {vehicles.length > 1 ? (
