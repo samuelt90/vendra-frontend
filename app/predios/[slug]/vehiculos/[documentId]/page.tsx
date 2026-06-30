@@ -60,6 +60,13 @@ export default async function VehicleDetailPage({ params }: PageProps) {
 
   const contactUrl = `/predios/${predio.slug}/vehiculos/${vehiculo.documentId}/contactar`;
 
+  const vehicleMainTitle =
+  [vehiculo.marca, vehiculo.modelo, vehiculo.anio]
+    .filter(Boolean)
+    .join(" · ") || vehiculo.titulo || "Vehículo";
+
+const vehicleCategory = vehiculo.titulo || "";
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-slate-50 px-3 py-4 sm:px-4 sm:py-8">
       <div className="mx-auto w-full max-w-6xl">
@@ -87,22 +94,23 @@ export default async function VehicleDetailPage({ params }: PageProps) {
 
             <aside className="min-w-0 border-t border-slate-200 p-5 sm:p-6 xl:border-l xl:border-t-0">
               <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">
-                {predio.nombre}
-              </div>
+              {predio.nombre}
+            </div>
 
-              <h1 className="mt-2 break-words text-2xl font-black leading-tight tracking-tight text-slate-950 sm:text-3xl">
-                {vehiculo.titulo}
-              </h1>
+            <h1 className="mt-2 break-words text-2xl font-black uppercase leading-tight tracking-tight text-slate-950 sm:text-3xl">
+              {vehicleMainTitle}
+            </h1>
 
+            {vehicleCategory ? (
               <p className="mt-1 text-sm font-bold text-slate-500">
-                {[vehiculo.marca, vehiculo.modelo, vehiculo.anio]
-                  .filter(Boolean)
-                  .join(" · ") || "Datos por completar"}
+                {vehicleCategory}
               </p>
+            ) : null}
 
-              <div className="mt-5">
-                <VehiclePriceBox vehicle={vehiculo} size="lg" />
-              </div>
+            <div className="mt-5">
+              <VehiclePriceBox vehicle={vehiculo} size="lg" />
+            </div>
+
 
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <VehicleWhatsappButton
@@ -119,15 +127,15 @@ export default async function VehicleDetailPage({ params }: PageProps) {
                 </Link>
               </div>
 
-              <section className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                <h2 className="text-sm font-black uppercase tracking-[0.14em] text-slate-500">
-                  Características
-                </h2>
+             <section className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-5">
+              <h2 className="text-xs font-black uppercase tracking-[0.22em] text-slate-400">
+                Características
+              </h2>
 
-                <div className="mt-4">
-                  <VehicleFeatureList vehicle={vehiculo} />
-                </div>
-              </section>
+              <div className="mt-3">
+                <VehicleFeatureList vehicle={vehiculo} />
+              </div>
+            </section>
 
               {vehiculo.descripcion ? (
                 <section className="mt-5 rounded-3xl border border-slate-200 bg-white p-4">

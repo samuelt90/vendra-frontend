@@ -43,7 +43,6 @@ function VehicleHorizontalSection({
 
   function handleScroll() {
     const container = scrollRef.current;
-
     if (!container) return;
 
     const maxScroll = container.scrollWidth - container.clientWidth;
@@ -56,11 +55,27 @@ function VehicleHorizontalSection({
     setScrollProgress(container.scrollLeft / maxScroll);
   }
 
-  const progressWidth =
-    vehicles.length > 1 ? `${Math.max(22, scrollProgress * 100)}%` : "100%";
+  const progressStep = Math.min(
+    10,
+    Math.max(0, Math.ceil(scrollProgress * 10))
+  );
+
+  const progressWidthClass = [
+    "w-[22%]",
+    "w-[22%]",
+    "w-[25%]",
+    "w-[30%]",
+    "w-[40%]",
+    "w-[50%]",
+    "w-[60%]",
+    "w-[70%]",
+    "w-[80%]",
+    "w-[90%]",
+    "w-full",
+  ][progressStep];
 
   return (
-    <section className="border-t border-slate-100 pt-5 sm:rounded-[1.75rem] sm:border sm:border-slate-200 sm:bg-slate-50/70 sm:p-4">
+    <section className="min-w-0 max-w-full overflow-hidden border-t border-slate-100 pt-5 sm:rounded-[1.75rem] sm:border sm:border-slate-200 sm:bg-slate-50/70 sm:p-4">
       <div className="mb-4 flex items-end justify-between gap-3">
         <div>
           <h3 className="text-lg font-black tracking-tight text-slate-950">
@@ -77,44 +92,43 @@ function VehicleHorizontalSection({
         </div>
       </div>
 
-{/* Mobile: carrusel horizontal */}
-<div className="w-full min-w-0 sm:hidden">
+      {/* Mobile: carrusel horizontal */}
+<div className="w-full max-w-full min-w-0 overflow-hidden sm:hidden">
   <div
     ref={scrollRef}
     onScroll={handleScroll}
-    className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    className="w-full max-w-full min-w-0 overflow-x-auto pb-5 snap-x snap-mandatory [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
   >
-    {vehicles.map((vehiculo) => (
-      <div
-        key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
-        className="group relative w-[50%] flex-none snap-start overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 active:scale-[0.99]"
-      >
-        <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80" />
+    <div className="flex w-full">
+      {vehicles.map((vehiculo) => (
+        <div
+          key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
+          className="w-full min-w-0 flex-[0_0_100%] snap-start snap-always"
+        >
+          <div className="group relative w-full min-w-0 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md ring-1 ring-transparent transition duration-200 active:scale-[0.99]">
+            <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80" />
 
-        <div className="relative">
-          <VehicleCard
-            vehiculo={vehiculo}
-            slug={slug}
-            onOpenQuickView={onOpenQuickView}
-          />
+            <div className="relative min-w-0">
+              <VehicleCard
+                vehiculo={vehiculo}
+                slug={slug}
+                onOpenQuickView={onOpenQuickView}
+              />
+            </div>
+          </div>
         </div>
-      </div>
-    ))}
-    <div className="w-[50%] flex-none" aria-hidden="true" />
+      ))}
+    </div>
   </div>
-
 
   {vehicles.length > 1 ? (
     <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
       <div
-        className="h-full rounded-full bg-blue-600 transition-[width] duration-200"
-        style={{ width: progressWidth }}
+        className={`h-full rounded-full bg-blue-600 transition-[width] duration-200 ${progressWidthClass}`}
       />
     </div>
   ) : null}
 </div>
-
-
       {/* Desktop: grid normal */}
       <div className="hidden sm:grid sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         {vehicles.map((vehiculo) => (
@@ -125,7 +139,11 @@ function VehicleHorizontalSection({
             <div className="absolute inset-y-0 left-0 w-1.5 bg-blue-600 opacity-80 transition group-hover:w-2" />
 
             <div className="relative">
-              <VehicleCard vehiculo={vehiculo} slug={slug} onOpenQuickView={onOpenQuickView}/>
+              <VehicleCard
+                vehiculo={vehiculo}
+                slug={slug}
+                onOpenQuickView={onOpenQuickView}
+              />
             </div>
           </div>
         ))}
@@ -133,6 +151,7 @@ function VehicleHorizontalSection({
     </section>
   );
 }
+
 
 export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
   const [filters, setFilters] = useState<PredioFilters>(
@@ -192,7 +211,7 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
     <>
     <section
       id="vehiculos"
-      className="relative mt-5 overflow-x-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-lg sm:p-6"
+      className="relative mt-5 w-full max-w-full min-w-0 overflow-x-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-lg sm:p-6"
     >
       <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -265,7 +284,7 @@ export default function PredioVehicleCatalog({ slug, vehicles }: Props) {
           </button>
         </div>
       ) : (
-        <div className="grid gap-5">
+        <div className="grid min-w-0 gap-5">
           <VehicleHorizontalSection
             title="Disponibles"
             description="Vehículos listos para consultar o comprar."

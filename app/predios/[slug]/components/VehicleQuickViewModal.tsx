@@ -85,73 +85,88 @@ export default function VehicleQuickViewModal({ vehicle, slug, onClose }: Props)
     },
   ];
 
-  return (
-    <div className="fixed inset-0 z-[80] bg-black/55 px-4 py-5 backdrop-blur-sm sm:hidden">
-      <div className="mx-auto flex h-full max-w-md items-end">
-        <div className="max-h-[92vh] w-full overflow-hidden rounded-[2rem] bg-white shadow-2xl">
-          <div className="relative h-64 bg-slate-100">
-            {mainImage?.detailUrl ? (
-              <Image
-                src={mainImage.detailUrl || mainImage.cardUrl}
-                alt={mainImage.alt || vehicle.titulo || "Vehículo"}
-                fill
-                sizes="100vw"
-                className="object-contain"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-sm font-black text-slate-500">
-                Sin imagen
-              </div>
-            )}
+  const vehicleMainTitle =
+  [vehicle.marca, vehicle.modelo, vehicle.anio]
+    .filter(Boolean)
+    .join(" · ") || vehicle.titulo || "Vehículo";
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="absolute right-4 top-4 rounded-full bg-white/90 px-4 py-2 text-sm font-black text-slate-900 shadow-lg backdrop-blur"
-            >
-              Cerrar
-            </button>
+const vehicleCategory = vehicle.titulo || "";
 
-            <div className="absolute left-4 top-4 rounded-full bg-blue-600 px-4 py-2 text-xs font-black uppercase tracking-wide text-white shadow-lg">
-              {estadoLabel}
+return (
+  <div className="fixed inset-0 z-[80] bg-black/55 px-4 py-5 backdrop-blur-sm sm:hidden">
+    <div className="mx-auto flex h-full max-w-md items-end">
+      <div className="max-h-[92vh] w-full overflow-hidden rounded-[2rem] bg-white shadow-2xl">
+        {/* Imagen */}
+        <div className="relative h-52 bg-slate-100">
+          {mainImage?.detailUrl || mainImage?.cardUrl ? (
+            <Image
+              src={mainImage.detailUrl || mainImage.cardUrl}
+              alt={mainImage.alt || vehicle.titulo || "Vehículo"}
+              fill
+              sizes="100vw"
+              className="object-contain"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm font-black text-slate-500">
+              Sin imagen
             </div>
+          )}
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-4 top-4 rounded-full bg-white/90 px-4 py-2 text-sm font-black text-slate-900 shadow-lg backdrop-blur"
+          >
+            Cerrar (X)
+          </button>
+
+          <div className="absolute left-4 top-4 rounded-full bg-blue-600 px-4 py-2 text-xs font-black uppercase tracking-wide text-white shadow-lg">
+            {estadoLabel}
           </div>
+        </div>
 
-          <div className="max-h-[calc(92vh-16rem)] overflow-y-auto p-5">
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-slate-400">
-              Vista rápida
-            </p>
-
-            <h2 className="mt-2 text-3xl font-black leading-tight tracking-tight text-slate-950">
-              {vehicle.titulo || "Vehículo"}
+        <div className="max-h-[calc(92vh-13rem)] overflow-y-auto p-5">
+          {/* Título principal */}
+          <div>
+            <h2 className="text-2xl font-black uppercase leading-tight tracking-tight text-slate-950">
+              {vehicleMainTitle}
             </h2>
 
-            <p className="mt-2 text-sm font-bold uppercase tracking-wide text-slate-500">
-              {[vehicle.marca, vehicle.modelo, vehicle.anio]
-                .filter(Boolean)
-                .join(" · ") || "Datos por completar"}
-            </p>
+            {vehicleCategory ? (
+              <p className="mt-1 text-sm font-bold text-slate-500">
+                {vehicleCategory}
+              </p>
+            ) : null}
+          </div>
 
-            <p className="mt-5 text-3xl font-black tracking-tight text-slate-950">
-              {formatPrice(vehicle.precio, vehicle.moneda)}
-            </p>
+          {/* Precio */}
+          <p className="mt-5 text-3xl font-black tracking-tight text-slate-950">
+            {formatPrice(vehicle.precio, vehicle.moneda)}
+          </p>
 
-            <div className="mt-6 grid grid-cols-2 gap-3">
+          {/* Características */}
+          <div className="mt-6">
+            <h3 className="text-xs font-black uppercase tracking-[0.22em] text-slate-400">
+              Características
+            </h3>
+
+            <div className="mt-3 divide-y divide-slate-200 rounded-3xl border border-slate-200 bg-slate-50 px-4">
               {featureCards.map((feature) => (
                 <div
                   key={feature.label}
-                  className="rounded-3xl border border-slate-200 bg-slate-50 p-4"
+                  className="flex items-center justify-between gap-4 py-3"
                 >
-                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+                  <span className="text-sm font-bold text-slate-500">
                     {feature.label}
-                  </p>
+                  </span>
 
-                  <p className="mt-2 break-words text-base font-black text-slate-950">
+                  <span className="max-w-[55%] break-words text-right text-sm font-black text-slate-950">
                     {feature.value}
-                  </p>
+                  </span>
                 </div>
               ))}
             </div>
+          </div>
 
             <div className="mt-6 grid gap-3">
               <Link

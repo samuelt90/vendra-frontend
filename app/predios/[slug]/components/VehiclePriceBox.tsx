@@ -31,10 +31,7 @@ export default function VehiclePriceBox({ vehicle, size = "sm" }: Props) {
       >
         {formatPrice(vehicle.precio, vehicle.moneda)}
       </div>
-
-      <div className="mt-1 text-sm font-bold text-slate-500">
-        Precio publicado por el vendedor
-      </div>
     </div>
   );
 }
+
