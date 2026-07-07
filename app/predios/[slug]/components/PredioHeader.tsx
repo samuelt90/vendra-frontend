@@ -1,7 +1,8 @@
 import Image from "next/image";
 import type { PredioCatalog } from "@/lib/predios/types";
 import PredioSocialLinks from "./PredioSocialLinks";
-
+import { MapPin } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa6";
 type Props = {
   predio: PredioCatalog;
 };
@@ -17,12 +18,9 @@ export default function PredioHeader({ predio }: Props) {
 const localWhatsapp = predio.whatsapp.replace(/\D/g, "");
 
 const internationalWhatsapp =
-  localWhatsapp.length === 8
-    ? `502${localWhatsapp}`
-    : localWhatsapp;
+  localWhatsapp.length === 8 ? `502${localWhatsapp}` : localWhatsapp;
 
-const whatsappMessage =
-  `Hola, vi el catálogo de ${displayName} y quisiera información.`;
+const whatsappMessage = `Hola, vi el catálogo de ${displayName} y quisiera información.`;
 
 const waLink = internationalWhatsapp
   ? `https://wa.me/${internationalWhatsapp}?text=${encodeURIComponent(
@@ -30,98 +28,113 @@ const waLink = internationalWhatsapp
     )}`
   : "";
 
-  return (
-    <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
-      <div className="relative h-36 w-full overflow-hidden bg-slate-950 sm:h-52">
-        {predio.cover?.detailUrl ? (
-          <Image
-            src={predio.cover.detailUrl}
-            alt={predio.cover.alt || predio.nombre}
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 1024px"
-            className="object-cover"
-          />
-        ) : (
-          <div className="h-full w-full bg-gradient-to-br from-slate-950 via-slate-800 to-blue-950" />
-        )}
+const mapsLink = predio.direccion
+  ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      predio.direccion
+    )}`
+  : "";
 
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/25 to-transparent" />
-      </div>
+const theme = "blue-premium";
 
-      <div className="relative px-5 pb-6 sm:px-6 sm:pb-7">
-        <div className="-mt-11 flex flex-col items-start gap-5 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex items-end gap-4">
-            <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-3xl border-4 border-white bg-white shadow-xl sm:h-24 sm:w-24">
-              {predio.logo?.cardUrl ? (
-                <Image
-                  src={predio.logo.cardUrl}
-                  alt={predio.logo.alt || predio.nombre}
-                  width={180}
-                  height={180}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-3xl font-black text-slate-400">
-                  {predio.nombre.slice(0, 1).toUpperCase()}
-                </span>
-              )}
-            </div>
+const themeClasses = {
+  "blue-premium": {
+    shell:
+      "border-slate-800/70 bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.26),rgba(15,23,42,0.95)_36%,rgba(2,6,23,1)_100%)]",
+    glow:
+      "before:absolute before:inset-x-6 before:top-8 before:h-48 before:rounded-full before:bg-blue-400/20 before:blur-3xl after:absolute after:inset-x-10 after:top-0 after:h-32 after:rounded-full after:bg-amber-300/10 after:blur-3xl",
+    heroCard:
+  "border-white/20 bg-white/[0.075] shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_10px_24px_rgba(0,0,0,0.32)] ring-1 ring-white/10 backdrop-blur-md",
+    logoBorder: "border-white/20 bg-white/95",
+    description: "text-slate-300",
+  },
+};
 
-            <div className="pb-1">
-              <div className="mb-2 inline-flex rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-blue-700">
-                Catálogo de vehículos
-              </div>
+const activeTheme = themeClasses[theme];
 
-              <h1 className="translate-y-1 text-3xl font-black leading-tight tracking-tight text-slate-950 sm:text-4xl">
-                {displayName}
-              </h1>
-            </div>
-          </div>
+return (
+  <section
+    className={`relative overflow-hidden rounded-[2rem] border ${activeTheme.shell} shadow-[0_24px_80px_rgba(15,23,42,0.35)] ${activeTheme.glow}`}
+  >
+    <div className="relative p-4 sm:p-6">
+      {/* Imagen principal */}
+      <div
+        className={`relative overflow-hidden rounded-[1.65rem] border ${activeTheme.heroCard}`}
+      >
+        <div className="relative h-44 w-full overflow-hidden bg-slate-950 sm:h-64">
+          {predio.cover?.detailUrl ? (
+            <Image
+              src={predio.cover.detailUrl}
+              alt={predio.cover.alt || predio.nombre}
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 1024px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950" />
+          )}
 
-         
-        </div>
-
-        <div className="mt-6 grid gap-5 border-t border-slate-200 pt-5 md:grid-cols-[0.8fr_1.2fr]">
-          <div className="grid gap-4 text-sm">
-            <div>
-              <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
-                WhatsApp
-              </div>
-
-              <div className="mt-1 text-base font-black text-slate-950">
-                {predio.whatsapp ? `${predio.whatsapp}` : "No definido"}
-              </div>
-            </div>
-
-            <div>
-              <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
-                Dirección
-              </div>
-
-              <div className="mt-1 text-base font-black text-slate-950">
-                {predio.direccion || "No definida"}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
-              Descripción
-            </div>
-
-            <div className="mt-2 max-w-2xl whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
-              {predio.descripcion || "Este predio aún no tiene descripción."}
-              <PredioSocialLinks
-              instagram={predio.instagram}
-              facebook={predio.facebook}
-              tiktok={predio.tiktok}
-              whatsapp={waLink}
-              />
-            </div>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent" />
         </div>
       </div>
-    </section>
-  );
-}
+
+{/* Información principal + acciones */}
+<div className="mx-auto mt-9 w-full max-w-xl px-3 pb-1 text-center sm:mt-10">
+  <h1 className="text-3xl font-black leading-tight tracking-tight text-white drop-shadow-[0_8px_28px_rgba(0,0,0,0.45)] sm:text-4xl">
+    {displayName}
+  </h1>
+
+  <p className="mx-auto mt-3 max-w-xs text-sm font-semibold leading-relaxed text-slate-300 Ssm:max-w-md sm:text-base">
+  Bienvenido a nuestro predio virtual
+</p>
+
+  <div className="mt-7 flex justify-center">
+    <PredioSocialLinks
+      instagram={predio.instagram}
+      facebook={predio.facebook}
+      tiktok={predio.tiktok}
+    />
+  </div>
+
+  <div className="mx-auto mt-7 grid w-full max-w-md grid-cols-2 gap-3">
+    {waLink ? (
+      <a
+        href={waLink}
+        target="_blank"
+        rel="noreferrer"
+       className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-emerald-300/35 bg-emerald-600/80 px-3 py-3 text-center text-sm font-black leading-tight text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_24px_rgba(0,0,0,0.32)] ring-1 ring-emerald-200/15 backdrop-blur-md transition duration-300 active:scale-95 sm:hover:-translate-y-0.5 sm:hover:border-emerald-200/45 sm:hover:bg-emerald-500/85"
+      >
+        <FaWhatsapp size={19} className="shrink-0 text-emerald-50" />
+        <span>WhatsApp</span>
+      </a>
+    ) : null}
+
+    {mapsLink ? (
+      <a
+        href={mapsLink}
+        target="_blank"
+        rel="noreferrer"
+        className="flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/[0.075] px-3 py-3 text-center text-sm font-black leading-tight text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_10px_24px_rgba(0,0,0,0.32)] ring-1 ring-white/10 backdrop-blur-md transition duration-300 active:scale-95 sm:hover:-translate-y-0.5 sm:hover:border-white/30 sm:hover:bg-white/[0.1]"
+      >
+        <MapPin size={19} className="shrink-0 text-slate-100" />
+        <span>Cómo llegar</span>
+      </a>
+    ) : null}
+  </div>
+
+ {predio.descripcion ? (
+  <div className="mx-auto mt-9 max-w-md border-t border-white/10 pt-6">
+    <div className="text-sm font-bold tracking-wide text-slate-300">
+      Sobre el predio
+    </div>
+
+    <div className="mx-auto mt-3 whitespace-pre-wrap text-sm font-semibold leading-relaxed text-slate-200">
+      {predio.descripcion}
+    </div>
+  </div>
+) : null}
+</div>
+</div>
+            </section>
+          );
+          }

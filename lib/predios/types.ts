@@ -35,6 +35,7 @@ export type PredioVehicle = {
   documentId: string;
   titulo: string;
   precio: string;
+  precio_negociable?: boolean;
   moneda: PredioMoneda;
   anio: string;
   kilometraje: string;
@@ -56,14 +57,23 @@ export type PredioCatalog = {
   slug: string;
   whatsapp: string;
   instagram?: string;
-  facebook?:string;
+  facebook?: string;
   tiktok?: string;
   direccion: string;
   descripcion: string;
+
+  solo_efectivo?: boolean;
+  visacuotas?: boolean;
+  credicuotas?: boolean;
+  financiamiento_propio?: boolean;
+  financiamiento_bancario?: boolean;
+  zu_credito?: boolean;
+
   logo: PredioVehicleImage | null;
   cover: PredioVehicleImage | null;
   vehiculos: PredioVehicle[];
 };
+
 
 export type PredioVehicleDetail = {
   predio: {
@@ -73,9 +83,17 @@ export type PredioVehicleDetail = {
     slug: string;
     whatsapp: string;
     direccion: string;
+
+    solo_efectivo?: boolean;
+    visacuotas?: boolean;
+    credicuotas?: boolean;
+    financiamiento_propio?: boolean;
+    financiamiento_bancario?: boolean;
+    zu_credito?: boolean;
   };
   vehiculo: PredioVehicle;
 };
+
 
 export type PredioFilters = {
   marca: string;

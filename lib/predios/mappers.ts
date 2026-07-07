@@ -4,6 +4,7 @@ import type {
   PredioVehicle,
   PredioVehicleDetail,
 } from "./types";
+
 import { mapPredioImage, mapPredioImages } from "./media";
 
 function normalizeEntity(item: any): any | null {
@@ -21,6 +22,11 @@ function normalizeCollection(raw: any): any[] {
 function safeStr(value: any, fallback = ""): string {
   if (value === null || value === undefined) return fallback;
   return String(value).trim();
+}
+
+function safeBool(value: any, fallback = false): boolean {
+  if (value === null || value === undefined) return fallback;
+  return Boolean(value);
 }
 
 function blocksToPlainText(blocks: any): string {
@@ -53,10 +59,10 @@ function normalizeEstado(value: any): PredioEstadoVehiculo {
 
 export function mapPredioVehicle(rawVehicle: any): PredioVehicle | null {
   const vehicle = normalizeEntity(rawVehicle);
+
   if (!vehicle) return null;
 
   const titulo = safeStr(vehicle.titulo, "Vehículo");
-
   const cover = mapPredioImage(vehicle.cover, titulo);
   const galeria = mapPredioImages(vehicle.galeria, titulo);
 
@@ -69,6 +75,7 @@ export function mapPredioVehicle(rawVehicle: any): PredioVehicle | null {
     documentId: safeStr(vehicle.documentId || vehicle.id),
     titulo,
     precio: safeStr(vehicle.precio),
+    precio_negociable: safeBool(vehicle.precio_negociable),
     moneda: safeStr(vehicle.moneda, "GTQ"),
     anio: safeStr(vehicle.anio),
     kilometraje: safeStr(vehicle.kilometraje),
@@ -86,6 +93,7 @@ export function mapPredioVehicle(rawVehicle: any): PredioVehicle | null {
 
 export function mapPredioCatalog(rawPredio: any): PredioCatalog | null {
   const predio = normalizeEntity(rawPredio);
+
   if (!predio) return null;
 
   const vehiculos = normalizeCollection(predio.vehiculos)
@@ -105,6 +113,14 @@ export function mapPredioCatalog(rawPredio: any): PredioCatalog | null {
     tiktok: safeStr(predio.tiktok),
     direccion: safeStr(predio.direccion),
     descripcion: blocksToPlainText(predio.descripcion),
+
+    solo_efectivo: safeBool(predio.solo_efectivo, true),
+    visacuotas: safeBool(predio.visacuotas),
+    credicuotas: safeBool(predio.credicuotas),
+    financiamiento_propio: safeBool(predio.financiamiento_propio),
+    financiamiento_bancario: safeBool(predio.financiamiento_bancario),
+    zu_credito: safeBool(predio.zu_credito),
+
     logo: mapPredioImage(predio.logo, safeStr(predio.nombre, "Logo del predio")),
     cover: mapPredioImage(
       predio.cover,
@@ -118,12 +134,15 @@ export function mapPredioVehicleDetail(
   rawVehicle: any
 ): PredioVehicleDetail | null {
   const vehicleRaw = normalizeEntity(rawVehicle);
+
   if (!vehicleRaw) return null;
 
   const vehicle = mapPredioVehicle(vehicleRaw);
+
   if (!vehicle) return null;
 
   const predioRaw = normalizeEntity(vehicleRaw.predio);
+
   if (!predioRaw) return null;
 
   return {
@@ -134,6 +153,13 @@ export function mapPredioVehicleDetail(
       slug: safeStr(predioRaw.slug),
       whatsapp: safeStr(predioRaw.whatsapp).replace(/\D/g, ""),
       direccion: safeStr(predioRaw.direccion),
+
+      solo_efectivo: safeBool(predioRaw.solo_efectivo, true),
+      visacuotas: safeBool(predioRaw.visacuotas),
+      credicuotas: safeBool(predioRaw.credicuotas),
+      financiamiento_propio: safeBool(predioRaw.financiamiento_propio),
+      financiamiento_bancario: safeBool(predioRaw.financiamiento_bancario),
+      zu_credito: safeBool(predioRaw.zu_credito),
     },
     vehiculo: vehicle,
   };

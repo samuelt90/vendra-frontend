@@ -110,11 +110,11 @@ export default function VehicleDetailGallery({ images, title }: Props) {
 
   return (
     <>
-      <section className="min-w-0 bg-white p-3 sm:p-4">
+      <section className="min-w-0 bg-slate-950 p-3 sm:p-4">
         <button
           type="button"
           onClick={openModal}
-          className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-[1.5rem] bg-slate-100"
+          className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/25"
         >
           {currentPhoto?.detailUrl ? (
             <Image
@@ -143,17 +143,17 @@ export default function VehicleDetailGallery({ images, title }: Props) {
         </button>
 
         {fotosCount > 1 ? (
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {fotos.map((photo, photoIndex) => (
               <button
                 key={`${photo.id}-${photoIndex}`}
                 type="button"
                 onClick={() => setIdx(photoIndex)}
-                className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-2xl border transition ${
-                  photoIndex === safeIdx
-                    ? "border-white ring-2 ring-white/40"
-                    : "border-white/10 opacity-70 hover:opacity-100"
-                }`}
+              className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-2xl border bg-white/[0.075] transition ${
+                photoIndex === safeIdx
+                  ? "border-white/45 opacity-100 ring-2 ring-white/20"
+                  : "border-white/10 opacity-60 hover:opacity-100"
+              }`}
               >
                 <Image
                   src={photo.cardUrl || photo.detailUrl}

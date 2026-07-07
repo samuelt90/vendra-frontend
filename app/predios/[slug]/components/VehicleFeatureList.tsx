@@ -43,20 +43,20 @@ function formatFeatureValue(label: string, value: string) {
 
 export default function VehicleFeatureList({ vehicle, compact = false }: Props) {
   const features = [
-    ["Marca", vehicle.marca],
-    ["Modelo", vehicle.modelo],
     ["Año", vehicle.anio],
     ["Kilometraje", vehicle.kilometraje],
     ["Transmisión", vehicle.transmision],
     ["Combustible", vehicle.combustible],
     ["Motor", vehicle.motor],
+    ["Marca", vehicle.marca],
+    ["Modelo", vehicle.modelo],
   ]
     .map(([label, value]) => [label, formatFeatureValue(label, value || "")])
     .filter(([, value]) => Boolean(value));
 
   if (features.length === 0) {
     return (
-      <p className="text-sm font-semibold text-slate-500">
+      <p className="text-sm font-semibold text-slate-400">
         Características por completar.
       </p>
     );
@@ -66,8 +66,8 @@ export default function VehicleFeatureList({ vehicle, compact = false }: Props) 
     <div
       className={
         compact
-          ? "divide-y divide-slate-200 text-sm"
-          : "divide-y divide-slate-200 text-sm"
+          ? "divide-y divide-white/10 text-sm"
+          : "divide-y divide-white/10 text-sm"
       }
     >
       {features.map(([label, value]) => (
@@ -79,9 +79,9 @@ export default function VehicleFeatureList({ vehicle, compact = false }: Props) 
               : "flex items-center justify-between gap-4 py-3"
           }
         >
-          <span className="font-bold text-slate-500">{label}</span>
+          <span className="font-bold text-slate-300">{label}</span>
 
-          <span className="max-w-[58%] break-words text-right font-black text-slate-950">
+          <span className="max-w-[58%] break-words text-right font-black text-[#F8FAFC]">
             {value}
           </span>
         </div>

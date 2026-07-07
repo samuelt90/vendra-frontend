@@ -1,55 +1,43 @@
 import type { IconType } from "react-icons";
-import {
-  FaFacebookF,
-  FaInstagram,
-  FaTiktok,
-  FaWhatsapp,
-} from "react-icons/fa6";
+import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa6";
 
 type Props = {
   instagram?: string;
   facebook?: string;
   tiktok?: string;
-  whatsapp?: string;
+  whatsapp?: string; // Se mantiene para no romper llamadas existentes, pero no se muestra aquí.
 };
 
 type SocialLink = {
   label: string;
   href?: string;
   icon: IconType;
-  className: string;
+  iconClassName: string;
 };
 
 export default function PredioSocialLinks({
   instagram,
   facebook,
   tiktok,
-  whatsapp,
 }: Props) {
   const links: SocialLink[] = [
-    {
-      label: "Instagram",
-      href: instagram,
-      icon: FaInstagram,
-      className: "bg-pink-600 hover:bg-pink-700",
-    },
     {
       label: "Facebook",
       href: facebook,
       icon: FaFacebookF,
-      className: "bg-blue-600 hover:bg-blue-700",
+      iconClassName: "text-[#1877F2]",
     },
     {
       label: "TikTok",
       href: tiktok,
       icon: FaTiktok,
-      className: "bg-slate-950 hover:bg-black",
+      iconClassName: "text-white",
     },
     {
-      label: "WhatsApp",
-      href: whatsapp,
-      icon: FaWhatsapp,
-      className: "bg-green-600 hover:bg-green-700",
+      label: "Instagram",
+      href: instagram,
+      icon: FaInstagram,
+      iconClassName: "text-[#E1306C]",
     },
   ];
 
@@ -58,30 +46,27 @@ export default function PredioSocialLinks({
   if (!availableLinks.length) return null;
 
   return (
-    <div className="mt-5">
-      <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
-        Redes sociales y contacto
-      </div>
+    <div className="flex shrink-0 items-center justify-end gap-2">
+      {availableLinks.map((link) => {
+        const Icon = link.icon;
 
-      <div className="mt-3 flex flex-wrap items-center gap-3">
-        {availableLinks.map((link) => {
-          const Icon = link.icon;
-
-          return (
-            <a
-              key={link.label}
-              href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`Visitar ${link.label}`}
-              title={link.label}
-              className={`grid h-12 w-12 place-items-center rounded-2xl text-white shadow-md transition duration-300 hover:-translate-y-1 hover:scale-105 hover:shadow-lg active:translate-y-0 active:scale-90 motion-reduce:transform-none motion-reduce:transition-none ${link.className}`}
-            >
-              <Icon className="h-5 w-5" aria-hidden="true" />
-            </a>
-          );
-        })}
-      </div>
+        return (
+          <a
+            key={link.label}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Visitar ${link.label}`}
+            title={link.label}
+            className="group grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/[0.075] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_10px_24px_rgba(0,0,0,0.32)] ring-1 ring-white/10 backdrop-blur-md transition duration-300 active:scale-90 sm:hover:-translate-y-0.5 sm:hover:scale-[1.04] sm:hover:border-white/30 sm:hover:bg-white/[0.1] motion-reduce:transform-none motion-reduce:transition-none"
+          >
+            <Icon
+              className={`h-5 w-5 drop-shadow-sm ${link.iconClassName}`}
+              aria-hidden="true"
+            />
+          </a>
+        );
+      })}
     </div>
   );
 }
