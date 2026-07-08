@@ -68,19 +68,16 @@ export default async function PredioPage({ params }: PageProps) {
   }
 
   const predio = result.data;
-  const waLink = predio.whatsapp ? `https://wa.me/${predio.whatsapp}` : "";
 
-  return (
-    <main className="min-h-screen bg-slate-50 px-3 py-5 sm:px-4 sm:py-8">
-      <div className="mx-auto max-w-5xl">
-        
-        <PredioHeader predio={predio} />
-
+return (
+  <main className="min-h-screen bg-slate-950 px-3 py-5 text-white sm:px-4 sm:py-8">
+    <div className="mx-auto max-w-5xl">
+      <PredioHeader predio={predio} />
       <PredioVehicleCatalog
-      slug={predio.slug}
-      vehicles={predio.vehiculos}/>
-
-      </div>
-    </main>
-  );
+        slug={predio.slug}
+        vehicles={predio.vehiculos}
+      />
+    </div>
+  </main>
+);
 }

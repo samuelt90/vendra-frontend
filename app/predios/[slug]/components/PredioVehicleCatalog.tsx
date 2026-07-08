@@ -93,37 +93,38 @@ function VehicleHorizontalSection({
         </Link>
       </div>
 
-      {/* Mobile: carrusel horizontal */}
-      <div className="w-full max-w-full min-w-0 overflow-hidden sm:hidden">
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="w-full max-w-full min-w-0 snap-x snap-mandatory overflow-x-auto pb-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          <div className="flex w-full">
-            {previewVehicles.map((vehiculo) => (
+            {/* Mobile: carrusel horizontal */}
+            <div className="w-full max-w-full min-w-0 overflow-hidden sm:hidden">
               <div
-                key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
-                className="w-full min-w-0 flex-[0_0_100%] snap-start snap-always"
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="w-full max-w-full min-w-0 snap-x snap-mandatory overflow-x-auto pb-5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
-                <VehicleCard
-                  vehiculo={vehiculo}
-                  slug={slug}
-                  onOpenQuickView={onOpenQuickView}
-                />
+                <div className="flex w-full gap-4 pr-6">
+                  {previewVehicles.map((vehiculo) => (
+                    <div
+                      key={vehiculo.documentId || vehiculo.id || vehiculo.titulo}
+                      className="min-w-0 flex-[0_0_88%] snap-start snap-always"
+                    >
+                      <VehicleCard
+                        vehiculo={vehiculo}
+                        slug={slug}
+                        onOpenQuickView={onOpenQuickView}
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
 
-        {previewVehicles.length > 1 ? (
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
-            <div
-              className={`h-full rounded-full bg-blue-500 shadow-[0_0_18px_rgba(59,130,246,0.75)] transition-[width] duration-200 ${progressWidthClass}`}
-            />
-          </div>
-        ) : null}
-      </div>
+              {previewVehicles.length > 1 ? (
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
+                  <div
+                    className={`h-full rounded-full bg-blue-500 shadow-[0_0_18px_rgba(59,130,246,0.75)] transition-[width] duration-200 ${progressWidthClass}`}
+                  />
+                </div>
+              ) : null}
+            </div>
+
 
       {/* Desktop: grid normal */}
       <div className="hidden sm:grid sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
