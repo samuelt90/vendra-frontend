@@ -66,5 +66,55 @@ body {
   animation: drawVehicleLine 2.2s ease-in-out infinite;
 }
 
+@keyframes importadoraTrustSlide {
+  0% {
+    opacity: 0;
+    transform: translateX(26px) scale(0.98);
+  }
+
+  7% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  24% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+
+  31% {
+    opacity: 0;
+    transform: translateX(-26px) scale(0.98);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-26px) scale(0.98);
+  }
+}
+
+@keyframes importadoraTrustDot {
+  0%,
+  31%,
+  100% {
+    opacity: 0.28;
+    transform: scale(0.85);
+  }
+
+  7%,
+  24% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.trust-slide {
+  animation: importadoraTrustSlide 12s ease-in-out infinite;
+}
+
+.trust-dot {
+  animation: importadoraTrustDot 12s ease-in-out infinite;
+}
+
 
 }
