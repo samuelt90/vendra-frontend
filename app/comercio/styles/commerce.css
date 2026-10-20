@@ -1,0 +1,61 @@
+.commerce-root {
+  --commerce-bg: #f1ede4;
+  --commerce-paper: #faf7f0;
+
+  --commerce-ink: #171713;
+  --commerce-ink-soft: #565149;
+  --commerce-muted: #817b71;
+
+  --commerce-line: rgba(23, 23, 19, 0.12);
+  --commerce-line-strong: rgba(23, 23, 19, 0.22);
+
+  --commerce-accent: #e65c2f;
+  --commerce-accent-soft: #f3c6ad;
+
+  --commerce-sand: #d9cbb9;
+  --commerce-olive: #74765e;
+
+  --commerce-radius-sm: 12px;
+  --commerce-radius-md: 22px;
+  --commerce-radius-lg: 36px;
+
+  --commerce-page-x: 20px;
+
+  min-height: 100dvh;
+
+  background:
+    radial-gradient(
+      circle at 78% 10%,
+      rgba(230, 92, 47, 0.07),
+      transparent 26rem
+    ),
+    var(--commerce-bg);
+
+  color: var(--commerce-ink);
+
+  font-family:
+    var(--font-commerce-sans),
+    sans-serif;
+
+  text-rendering: optimizeLegibility;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--commerce-accent);
+  color: var(--commerce-paper);
+}
+
+@media (min-width: 768px) {
+  .commerce-root {
+    --commerce-page-x: 32px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .commerce-root {
+    --commerce-page-x: 48px;
+  }
+}
