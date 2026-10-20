@@ -33,9 +33,8 @@ export default function StoreHeader({
   brandName = "Casa Vendra",
   brandDescriptor,
   brandLogo,
-
-  onSearch,
 }: StoreHeaderProps) {
+
   const { scrollY } = useScroll();
   const reduceMotion = useReducedMotion();
 
@@ -175,7 +174,7 @@ export default function StoreHeader({
             ease: commerceEase.spatial,
           }}
         >
-          <HeaderSearch onSearch={onSearch} />
+          <HeaderSearch />
 
           <HeaderSelection />
         </motion.div>

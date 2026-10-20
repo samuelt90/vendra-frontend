@@ -28,15 +28,17 @@ export default function StoreHero() {
     if (reduceMotion) return;
 
     const context = gsap.context(() => {
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: track,
-            start: "top top",
-            end: "bottom bottom",
-            scrub: 0.8,
-          },
-        })
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: track,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 0.8,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      timeline
         .to(
           content,
           {
@@ -81,36 +83,41 @@ export default function StoreHero() {
           overflow-hidden
         "
       >
-        {/* Zona exclusiva de productos */}
-        <div
-          className="
-            absolute
-            inset-x-0
-            top-0
-            h-[61svh]
-            overflow-hidden
-            md:h-[59svh]
-          "
-        >
-          <HeroScene />
-        </div>
+ {/* ESCENA DE PRODUCTOS */}
+<div
+  className="
+    absolute
+    inset-0
+    overflow-hidden
 
-        {/* Zona exclusiva de contenido */}
-        <div
-          ref={contentRef}
-          className="
-            absolute
-            inset-x-0
-            bottom-0
-            z-20
-            h-[42svh]
-            will-change-transform
-            md:h-[43svh]
-          "
-        >
-          <HeroContent />
-        </div>
+    md:bottom-auto
+    md:h-[56svh]
+  "
+>
+  <HeroScene />
+</div>
+
+{/* CONTENIDO EDITORIAL */}
+<div
+  ref={contentRef}
+  className="
+    absolute
+    inset-x-0
+    top-[clamp(5.7rem,14svh,7.5rem)]
+    z-20
+    h-auto
+    will-change-transform
+
+    md:top-auto
+    md:bottom-[clamp(1.5rem,4svh,3.5rem)]
+    md:h-auto
+  "
+>
+  <HeroContent />
+</div>
+
       </div>
     </section>
   );
 }
+

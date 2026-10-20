@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
+
 import {
   Instrument_Serif,
   Manrope,
@@ -10,6 +12,22 @@ import CartSummary from "./components/cart/CartSummary";
 
 import "./styles/commerce.css";
 import "./styles/typography.css";
+
+export const metadata: Metadata = {
+  applicationName: "Ecommerce",
+  manifest: "/comercio/manifest.webmanifest",
+
+  icons: {
+    icon: "/comercio/icon.png",
+    apple: "/comercio/icons/ecommerce-192.png",
+  },
+
+  appleWebApp: {
+    capable: true,
+    title: "Ecommerce",
+    statusBarStyle: "default",
+  },
+};
 
 const display = Instrument_Serif({
   weight: "400",
@@ -43,3 +61,4 @@ export default function ComercioLayout({
     </div>
   );
 }
+

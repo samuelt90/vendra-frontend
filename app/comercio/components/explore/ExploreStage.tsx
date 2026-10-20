@@ -24,6 +24,7 @@ type ProductAssetProps = {
   className: string;
   direction?: "left" | "right" | "center";
   delay?: number;
+  bounded?: boolean;
 };
 
 function ProductAsset({
@@ -32,6 +33,7 @@ function ProductAsset({
   className,
   direction = "center",
   delay = 0,
+  bounded = false,
 }: ProductAssetProps) {
   const reduceMotion = useReducedMotion();
 
@@ -50,87 +52,109 @@ function ProductAsset({
         : 8;
 
   return (
-    <motion.div
-      className={className}
-      style={{
-        transformStyle: "preserve-3d",
-      }}
-      initial={
-        reduceMotion
-          ? {
-              opacity: 0,
-            }
-          : {
-              opacity: 0,
-              x: fromX,
-              y: 24,
-              scale: 0.72,
-              rotateY: fromRotate,
-              rotateX: 8,
-              z: -220,
-            }
-      }
-      animate={{
-        opacity: 1,
-        x: 0,
-        y: 0,
-        scale: 1,
-        rotateY: 0,
-        rotateX: 0,
-        z: 0,
-      }}
-      exit={
-        reduceMotion
-          ? {
-              opacity: 0,
-            }
-          : {
-              opacity: 0,
-              x: -fromX * 0.65,
-              y: -18,
-              scale: 1.08,
-              rotateY: -fromRotate * 0.7,
-              rotateX: -5,
-              z: 170,
-            }
-      }
-      transition={{
-        delay: reduceMotion ? 0 : delay,
-        duration: reduceMotion
-          ? commerceDuration.micro
-          : 0.72,
-        ease: commerceEase.spatial,
-      }}
-    >
+    /*
+     * El contenedor exterior controla la posición.
+     * Motion anima el elemento interior.
+     *
+     * Esto evita conflictos entre transformaciones
+     * CSS de posicionamiento y transformaciones 3D.
+     */
+    <div className={className}>
       <motion.div
-        animate={
+        className={
+          bounded
+            ? "h-full w-full"
+            : "w-full"
+        }
+        style={{
+          transformStyle: "preserve-3d",
+        }}
+        initial={
           reduceMotion
-            ? undefined
+            ? {
+                opacity: 0,
+              }
             : {
-                y: [0, -6, 0],
-                rotateZ: [0, 0.7, 0],
+                opacity: 0,
+                x: fromX,
+                y: 24,
+                scale: 0.72,
+                rotateY: fromRotate,
+                rotateX: 8,
+                z: -220,
+              }
+        }
+        animate={{
+          opacity: 1,
+          x: 0,
+          y: 0,
+          scale: 1,
+          rotateY: 0,
+          rotateX: 0,
+          z: 0,
+        }}
+        exit={
+          reduceMotion
+            ? {
+                opacity: 0,
+              }
+            : {
+                opacity: 0,
+                x: -fromX * 0.65,
+                y: -18,
+                scale: 1.08,
+                rotateY: -fromRotate * 0.7,
+                rotateX: -5,
+                z: 170,
               }
         }
         transition={{
-          duration: 4.8,
-          ease: "easeInOut",
-          repeat: Infinity,
+          delay: reduceMotion ? 0 : delay,
+          duration: reduceMotion
+            ? commerceDuration.micro
+            : 0.72,
+          ease: commerceEase.spatial,
         }}
       >
-        <Image
-          src={src}
-          alt={alt}
-          width={1000}
-          height={1000}
-          className="
-            h-auto
-            w-full
-            object-contain
-            drop-shadow-[0_32px_38px_rgba(0,0,0,0.16)]
-          "
-        />
+        <motion.div
+          className={
+            bounded
+              ? "h-full w-full"
+              : "w-full"
+          }
+          animate={
+            reduceMotion
+              ? undefined
+              : {
+                  y: [0, -6, 0],
+                  rotateZ: [0, 0.7, 0],
+                }
+          }
+          transition={{
+            duration: 4.8,
+            ease: "easeInOut",
+            repeat: Infinity,
+          }}
+        >
+          <Image
+            src={src}
+            alt={alt}
+            width={1000}
+            height={1000}
+            className={`
+              w-full
+              object-contain
+              ${
+                bounded
+                  ? "h-full"
+                  : "h-auto"
+              }
+              drop-shadow-[0_26px_32px_rgba(0,0,0,0.16)]
+            `}
+          />
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -146,8 +170,8 @@ export default function ExploreStage({
     <div
       className="
         relative
-        h-[52svh]
-        min-h-[430px]
+        h-[46svh]
+        min-h-[350px]
         w-full
         overflow-hidden
 
@@ -159,111 +183,136 @@ export default function ExploreStage({
         perspectiveOrigin: "50% 46%",
       }}
     >
-      {/* Palabra editorial de fondo */}
-      <AnimatePresence mode="popLayout">
-        <motion.div
-          key={`word-${category.id}`}
-          aria-hidden="true"
-          className="
-            commerce-display
-            pointer-events-none
-            absolute
-            left-1/2
-            top-[47%]
-            z-0
-            -translate-x-1/2
-            -translate-y-1/2
-            whitespace-nowrap
-            text-[clamp(5.4rem,26vw,10rem)]
-            leading-none
-            tracking-[-0.075em]
-            text-[var(--commerce-ink)]
-            opacity-[0.055]
+      {/* ===================================== */}
+      {/* PALABRA EDITORIAL DE FONDO             */}
+      {/* ===================================== */}
 
-            md:text-[clamp(8rem,15vw,15rem)]
-          "
-          initial={
-            reduceMotion
-              ? { opacity: 0 }
-              : {
-                  opacity: 0,
-                  scale: 0.88,
-                  y: 40,
-                  rotateX: 12,
-                  z: -180,
-                }
-          }
-          animate={{
-            opacity: 0.055,
-            scale: 1,
-            y: 0,
-            rotateX: 0,
-            z: 0,
-          }}
-          exit={
-            reduceMotion
-              ? { opacity: 0 }
-              : {
-                  opacity: 0,
-                  scale: 1.08,
-                  y: -28,
-                  rotateX: -8,
-                  z: 120,
-                }
-          }
-          transition={{
-            duration: reduceMotion
-              ? commerceDuration.micro
-              : 0.7,
-            ease: commerceEase.spatial,
-          }}
-        >
-          {category.title}
-        </motion.div>
-      </AnimatePresence>
+      <div
+        className="
+          pointer-events-none
+          absolute
+          left-1/2
+          top-[47%]
+          z-0
+          -translate-x-1/2
+          -translate-y-1/2
+        "
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={`word-${category.id}`}
+            aria-hidden="true"
+            className="
+              commerce-display
+              whitespace-nowrap
+              text-[clamp(5.4rem,26vw,10rem)]
+              leading-none
+              tracking-[-0.075em]
+              text-[var(--commerce-ink)]
 
-      {/* Luz ambiental */}
-      <motion.div
-        aria-hidden="true"
+              md:text-[clamp(8rem,15vw,15rem)]
+            "
+            initial={
+              reduceMotion
+                ? {
+                    opacity: 0,
+                  }
+                : {
+                    opacity: 0,
+                    scale: 0.88,
+                    y: 40,
+                    rotateX: 12,
+                    z: -180,
+                  }
+            }
+            animate={{
+              opacity: 0.11,
+              scale: 1,
+              y: 0,
+              rotateX: 0,
+              z: 0,
+            }}
+            exit={
+              reduceMotion
+                ? {
+                    opacity: 0,
+                  }
+                : {
+                    opacity: 0,
+                    scale: 1.08,
+                    y: -28,
+                    rotateX: -8,
+                    z: 120,
+                  }
+            }
+            transition={{
+              duration: reduceMotion
+                ? commerceDuration.micro
+                : 0.7,
+              ease: commerceEase.spatial,
+            }}
+          >
+            <span className="md:opacity-50">
+              {category.title}
+            </span>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* ===================================== */}
+      {/* ILUMINACIÓN AMBIENTAL                  */}
+      {/* ===================================== */}
+
+      <div
         className="
           pointer-events-none
           absolute
           left-1/2
           top-[44%]
           z-0
-          h-[65vw]
-          max-h-[620px]
-          w-[65vw]
-          max-w-[620px]
           -translate-x-1/2
           -translate-y-1/2
-          rounded-full
-          bg-[var(--commerce-accent)]
-          blur-[80px]
-
-          md:blur-[120px]
         "
-        animate={{
-          opacity:
-            category.id === "audio"
-              ? 0.09
-              : category.id === "wearables"
-                ? 0.065
-                : category.id === "computacion"
-                  ? 0.075
-                  : 0.1,
-          scale:
-            category.id === "creadores"
-              ? 1.08
-              : 1,
-        }}
-        transition={{
-          duration: commerceDuration.transition,
-          ease: commerceEase.smooth,
-        }}
-      />
+      >
+        <motion.div
+          aria-hidden="true"
+          className="
+            h-[65vw]
+            max-h-[620px]
+            w-[65vw]
+            max-w-[620px]
+            rounded-full
+            bg-[var(--commerce-accent)]
+            blur-[80px]
 
-      {/* Escena 3D aparente */}
+            md:blur-[120px]
+          "
+          animate={{
+            opacity:
+              category.id === "audio"
+                ? 0.09
+                : category.id === "wearables"
+                  ? 0.065
+                  : category.id === "computacion"
+                    ? 0.075
+                    : 0.1,
+            scale:
+              category.id === "creadores"
+                ? 1.08
+                : 1,
+          }}
+          transition={{
+            duration:
+              commerceDuration.transition,
+            ease: commerceEase.smooth,
+          }}
+        />
+      </div>
+
+      {/* ===================================== */}
+      {/* ESCENA DE PRODUCTOS                    */}
+      {/* ===================================== */}
+
       <div
         className="
           absolute
@@ -274,27 +323,76 @@ export default function ExploreStage({
           transformStyle: "preserve-3d",
         }}
       >
-        <AnimatePresence mode="popLayout">
-          <div
+        <AnimatePresence mode="wait">
+          <motion.div
             key={category.id}
             className="absolute inset-0"
             style={{
               transformStyle: "preserve-3d",
             }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{
+              duration: commerceDuration.fast,
+            }}
           >
+            {/* ================================= */}
+            {/* AUDIO                             */}
+            {/* ================================= */}
+
             {category.id === "audio" && primary ? (
               <>
+                {/* MÓVIL — AUDÍFONOS */}
+
+                <ProductAsset
+                  src={primary.src}
+                  alt={primary.alt}
+                  direction="left"
+                  bounded
+                  className="
+                    absolute
+                    left-[4%]
+                    top-[7%]
+                    h-[48%]
+                    w-[65%]
+
+                    md:hidden
+                  "
+                />
+
+                {/* MÓVIL — BOCINA */}
+
+                {secondary && (
+                  <ProductAsset
+                    src={secondary.src}
+                    alt={secondary.alt}
+                    direction="right"
+                    delay={0.06}
+                    bounded
+                    className="
+                      absolute
+                      bottom-[6%]
+                      right-[5%]
+                      h-[34%]
+                      w-[55%]
+
+                      md:hidden
+                    "
+                  />
+                )}
+
+                {/* PC — AUDÍFONOS */}
+
                 <ProductAsset
                   src={primary.src}
                   alt={primary.alt}
                   direction="left"
                   className="
                     absolute
-                    left-[8%]
-                    top-[12%]
-                    w-[68vw]
-                    max-w-[360px]
+                    hidden
 
+                    md:block
                     md:left-[19%]
                     md:top-[8%]
                     md:w-[37vw]
@@ -302,7 +400,9 @@ export default function ExploreStage({
                   "
                 />
 
-                {secondary ? (
+                {/* PC — BOCINA */}
+
+                {secondary && (
                   <ProductAsset
                     src={secondary.src}
                     alt={secondary.alt}
@@ -310,22 +410,25 @@ export default function ExploreStage({
                     delay={0.06}
                     className="
                       absolute
-                      -right-[12%]
-                      bottom-[5%]
-                      w-[56vw]
-                      max-w-[300px]
+                      hidden
 
+                      md:block
                       md:right-[10%]
                       md:bottom-[8%]
                       md:w-[27vw]
                       md:max-w-[420px]
                     "
                   />
-                ) : null}
+                )}
               </>
             ) : null}
 
-            {category.id === "wearables" && primary ? (
+            {/* ================================= */}
+            {/* WEARABLES                         */}
+            {/* ================================= */}
+
+            {category.id === "wearables" &&
+            primary ? (
               <ProductAsset
                 src={primary.src}
                 alt={primary.alt}
@@ -345,27 +448,58 @@ export default function ExploreStage({
               />
             ) : null}
 
-            {category.id === "computacion" && primary ? (
-              <ProductAsset
-                src={primary.src}
-                alt={primary.alt}
-                direction="left"
-                className="
-                  absolute
-                  left-1/2
-                  top-[24%]
-                  w-[105vw]
-                  max-w-[610px]
-                  -translate-x-1/2
+            {/* ================================= */}
+            {/* COMPUTACIÓN                       */}
+            {/* ================================= */}
 
-                  md:top-[18%]
-                  md:w-[68vw]
-                  md:max-w-[950px]
-                "
-              />
+            {category.id === "computacion" &&
+            primary ? (
+              <>
+                {/* MÓVIL — TECLADO */}
+
+                <ProductAsset
+                  src={primary.src}
+                  alt={primary.alt}
+                  direction="left"
+                  bounded
+                  className="
+                    absolute
+                    left-[4%]
+                    top-[15%]
+                    h-[58%]
+                    w-[92%]
+
+                    md:hidden
+                  "
+                />
+
+                {/* PC — TECLADO */}
+
+                <ProductAsset
+                  src={primary.src}
+                  alt={primary.alt}
+                  direction="left"
+                  className="
+                    absolute
+                    hidden
+
+                    md:block
+                    md:left-1/2
+                    md:top-[18%]
+                    md:w-[68vw]
+                    md:max-w-[950px]
+                    md:-translate-x-1/2
+                  "
+                />
+              </>
             ) : null}
 
-            {category.id === "creadores" && primary ? (
+            {/* ================================= */}
+            {/* CREADORES                         */}
+            {/* ================================= */}
+
+            {category.id === "creadores" &&
+            primary ? (
               <ProductAsset
                 src={primary.src}
                 alt={primary.alt}
@@ -384,11 +518,14 @@ export default function ExploreStage({
                 "
               />
             ) : null}
-          </div>
+          </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Piso visual muy tenue */}
+      {/* ===================================== */}
+      {/* PISO VISUAL                            */}
+      {/* ===================================== */}
+
       <div
         aria-hidden="true"
         className="
@@ -401,9 +538,11 @@ export default function ExploreStage({
           w-[68%]
           -translate-x-1/2
           bg-[var(--commerce-line)]
+
           md:w-[54%]
         "
       />
     </div>
   );
 }
+

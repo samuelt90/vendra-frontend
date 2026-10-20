@@ -17,23 +17,19 @@ export default function HeroContent() {
     <div
       className="
         relative
-        flex
-        h-full
-        w-full
+        flex h-full w-full
         items-start
-        pt-3
-        sm:pt-5
-        md:pt-4
+        pt-3 sm:pt-5 md:pt-4
       "
     >
       <div
         className="
-          mx-auto
-          w-full
+          mx-auto w-full
           max-w-[1600px]
           px-[var(--commerce-page-x)]
         "
       >
+        {/* EYEBROW */}
         <motion.p
           className="
             commerce-label
@@ -58,6 +54,7 @@ export default function HeroContent() {
           {heroContent.eyebrow}
         </motion.p>
 
+        {/* TITULAR */}
         <motion.h1
           className="
             commerce-display
@@ -90,60 +87,93 @@ export default function HeroContent() {
           {heroContent.title}
         </motion.h1>
 
+        {/* CTA COMERCIAL */}
         <motion.div
-          className="mt-5 md:mt-6"
+          className="mt-8 md:mt-10"
           initial={
             reduceMotion
               ? { opacity: 0 }
-              : { opacity: 0, y: 14 }
+              : { opacity: 0, y: 16 }
           }
           animate={{
             opacity: 1,
             y: 0,
           }}
           transition={{
-            delay: reduceMotion ? 0 : 0.16,
+            delay: reduceMotion ? 0 : 0.2,
             duration: reduceMotion
               ? commerceDuration.micro
               : commerceDuration.interface,
             ease: commerceEase.enter,
           }}
         >
-          <Link
-            href={heroContent.actionHref}
-            className="
-              commerce-sans
-              group
-              inline-flex
-              items-center
-              gap-3
-              text-[0.92rem]
-              font-[650]
-              tracking-[-0.025em]
-              text-[var(--commerce-ink)]
-            "
-          >
-            <span className="border-b border-[var(--commerce-line-strong)] pb-1">
-              {heroContent.actionLabel}
-            </span>
+ <Link
+  href={heroContent.actionHref}
+  className="
+    commerce-sans
+    group relative
+    inline-flex
+    min-h-[46px]
+    items-center
+    justify-between
+    gap-5
+    rounded-full
+    bg-[var(--commerce-ink)]
+    py-[5px]
+    pl-5 pr-[5px]
+    text-[0.75rem]
+    font-[700]
+    tracking-[-0.025em]
+    text-[var(--commerce-paper)]
+    shadow-[0_8px_20px_rgba(23,22,18,0.13)]
+    transition-[transform,box-shadow]
+    duration-300
+    hover:-translate-y-0.5
+    active:scale-[0.98]
+    motion-reduce:transition-none
 
-            <motion.span
-              aria-hidden="true"
-              whileHover={
-                reduceMotion
-                  ? undefined
-                  : { x: 4 }
-              }
-              transition={{
-                duration: commerceDuration.fast,
-                ease: commerceEase.enter,
-              }}
-            >
-              <ArrowRight size={19} />
-            </motion.span>
-          </Link>
+    md:min-h-[58px]
+    md:gap-10
+    md:py-2
+    md:pl-7 md:pr-2
+    md:text-[1rem]
+    md:shadow-[0_12px_28px_rgba(23,22,18,0.16)]
+  "
+>
+  <span>{heroContent.actionLabel}</span>
+
+  <span
+    aria-hidden="true"
+    className="
+      flex h-9 w-9
+      shrink-0
+      items-center justify-center
+      rounded-full
+      bg-[var(--commerce-accent)]
+      text-white
+
+      md:h-11 md:w-11
+    "
+  >
+    <ArrowRight
+      size={16}
+      weight="regular"
+      className="
+        transition-transform
+        duration-300
+        group-hover:translate-x-1
+        motion-reduce:transition-none
+
+        md:h-5 md:w-5
+      "
+    />
+  </span>
+</Link>
+
+
         </motion.div>
       </div>
     </div>
   );
 }
+

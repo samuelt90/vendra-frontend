@@ -33,8 +33,8 @@ export const heroProducts: HeroProduct[] = [
 ];
 
 export const heroContent = {
-  eyebrow: "Nuevos ingresos",
+  eyebrow: "Recién Disponibles",
   title: "Tecnología que acaba de llegar.",
-  actionLabel: "Ver novedades",
+  actionLabel: "Nuevos Ingresos",
   actionHref: "#productos",
 };
