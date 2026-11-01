@@ -135,21 +135,25 @@ export default function ProductDetail({
         {/* PRODUCTO PRINCIPAL                                */}
         {/* ================================================= */}
 
-        <div
-          className="
-            grid
-            gap-8
+ <div
+  className="
+    grid
+    min-w-0
+    grid-cols-1
+    gap-8
 
-            md:grid-cols-12
-            md:items-start
-            md:gap-8
+    md:grid-cols-12
+    md:items-start
+    md:gap-8
 
-            lg:gap-12
-          "
-        >
+    lg:gap-12
+  "
+>
           {/* GALERÍA */}
           <div
             className="
+              min-w-0
+              w-full
               md:col-span-7
               lg:col-span-7
             "
@@ -162,15 +166,18 @@ export default function ProductDetail({
           </div>
 
           {/* INFORMACIÓN */}
-          <div
-            className="
-              md:col-span-5
-              md:sticky
-              md:top-24
+<div
+  className="
+    min-w-0
+    w-full
+    max-w-full
 
-              lg:top-28
-            "
-          >
+    md:col-span-5
+    md:sticky
+    md:top-24
+    lg:top-28
+  "
+>
             <div
               className="
                 flex

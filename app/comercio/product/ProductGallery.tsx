@@ -4,28 +4,59 @@ import Image from "next/image";
 import {
   AnimatePresence,
   motion,
+  useMotionValue,
   useReducedMotion,
+  useSpring,
 } from "motion/react";
 import {
   ArrowLeft,
   ArrowRight,
+  ArrowsOutSimple,
 } from "@phosphor-icons/react";
 import {
+  useEffect,
   useMemo,
   useState,
+  type PointerEvent,
 } from "react";
-
-import {
-  commerceDuration,
-  commerceEase,
-} from "../styles/motion";
-
 
 type ProductGalleryProps = {
   name: string;
   cover: string;
   images?: string[];
 };
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const SPRING = {
+  stiffness: 110,
+  damping: 23,
+  mass: 0.85,
+};
+
+const imageVariants = {
+  initial: (direction: number) => ({
+    opacity: 0,
+    x: direction * 32,
+    rotate: direction * 4,
+    scale: 0.93,
+  }),
+
+  animate: {
+    opacity: 1,
+    x: 0,
+    rotate: 0,
+    scale: 1,
+  },
+
+  exit: (direction: number) => ({
+    opacity: 0,
+    x: direction * -24,
+    rotate: direction * -3,
+    scale: 0.96,
+  }),
+};
+
 
 export default function ProductGallery({
   name,
@@ -34,210 +65,410 @@ export default function ProductGallery({
 }: ProductGalleryProps) {
   const reduceMotion = useReducedMotion();
 
-  const gallery = useMemo(() => {
-    const source =
-      images && images.length > 0
-        ? images
-        : [cover];
+  const gallery = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          [cover, ...(images ?? [])].filter(Boolean)
+        )
+      ),
+    [cover, images]
+  );
 
-    return Array.from(new Set(source));
-  }, [images, cover]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [inspecting, setInspecting] = useState(false);
 
-  const [activeIndex, setActiveIndex] =
-    useState(0);
+  const activeImage = gallery[activeIndex] ?? cover;
+  const hasMultiple = gallery.length > 1;
 
-  const activeImage =
-    gallery[activeIndex] ?? cover;
+  // Movimiento físico suave del producto.
+  const rotateX = useMotionValue(0);
+  const rotateY = useMotionValue(0);
+  const translateX = useMotionValue(0);
+  const translateY = useMotionValue(0);
 
-  const hasMultiple =
-    gallery.length > 1;
+  const smoothRotateX = useSpring(rotateX, SPRING);
+  const smoothRotateY = useSpring(rotateY, SPRING);
+  const smoothX = useSpring(translateX, SPRING);
+  const smoothY = useSpring(translateY, SPRING);
 
-  function selectImage(index: number) {
+  useEffect(() => {
+    setActiveIndex(0);
+    setInspecting(false);
+  }, [cover]);
+
+  function resetTilt() {
+    rotateX.set(0);
+    rotateY.set(0);
+    translateX.set(0);
+    translateY.set(0);
+  }
+
+  function handlePointerMove(
+    event: PointerEvent<HTMLDivElement>
+  ) {
     if (
-      index < 0 ||
-      index >= gallery.length
+      reduceMotion ||
+      event.pointerType !== "mouse"
     ) {
       return;
     }
 
+    const bounds =
+      event.currentTarget.getBoundingClientRect();
+
+    const positionX =
+      (event.clientX - bounds.left) / bounds.width;
+
+    const positionY =
+      (event.clientY - bounds.top) / bounds.height;
+
+    const normalizedX = (positionX - 0.5) * 2;
+    const normalizedY = (positionY - 0.5) * 2;
+
+    rotateY.set(normalizedX * 8);
+    rotateX.set(normalizedY * -6);
+
+    translateX.set(normalizedX * 12);
+    translateY.set(normalizedY * 9);
+  }
+
+  function selectImage(index: number) {
+    if (
+      index < 0 ||
+      index >= gallery.length ||
+      index === activeIndex
+    ) {
+      return;
+    }
+
+    setDirection(index > activeIndex ? 1 : -1);
     setActiveIndex(index);
+    setInspecting(false);
   }
 
   function nextImage() {
     if (!hasMultiple) return;
 
+    setDirection(1);
     setActiveIndex((current) =>
-      current === gallery.length - 1
-        ? 0
-        : current + 1
+      (current + 1) % gallery.length
     );
+    setInspecting(false);
   }
 
   function previousImage() {
     if (!hasMultiple) return;
 
+    setDirection(-1);
     setActiveIndex((current) =>
-      current === 0
-        ? gallery.length - 1
-        : current - 1
+      (current - 1 + gallery.length) %
+      gallery.length
     );
+    setInspecting(false);
   }
 
   return (
-    <div className="w-full">
-      {/* ================================================= */}
-      {/* MOBILE                                            */}
-      {/* ================================================= */}
+    <div className="w-full min-w-0 max-w-full">
+      {/* ESCENA PRINCIPAL */}
 
-      <div className="md:hidden">
+      <div
+        className="
+          relative isolate
+          w-full min-w-0
+          overflow-hidden
+          bg-[#EDEDE9]
+        "
+      >
         <div
           className="
-            relative
-            overflow-hidden
-            rounded-[26px_26px_12px_26px]
-            bg-[#e7e1d7]
+            pointer-events-none
+            absolute inset-0
+            bg-[radial-gradient(ellipse_at_50%_46%,#FAFAF7_0%,#E8E9E4_58%,#DADDD6_100%)]
           "
+        />
+
+        {/* Halo de profundidad */}
+
+        <motion.div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute left-1/2 top-[46%]
+            aspect-square w-[78%]
+            -translate-x-1/2 -translate-y-1/2
+            rounded-full
+            bg-white/50 blur-[55px]
+          "
+          animate={
+            reduceMotion
+              ? undefined
+              : {
+                  scale: [1, 1.07, 1],
+                  opacity: [0.65, 0.95, 0.65],
+                }
+          }
+          transition={{
+            duration: 7,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Líneas circulares muy sutiles */}
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute left-1/2 top-1/2
+            aspect-square w-[75%]
+            -translate-x-1/2 -translate-y-1/2
+            rounded-full border border-white/55
+          "
+        />
+
+        <div
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute left-1/2 top-1/2
+            aspect-square w-[105%]
+            -translate-x-1/2 -translate-y-1/2
+            rounded-full border border-white/30
+          "
+        />
+
+        {/* Información editorial */}
+
+        <div
+          className="
+            commerce-sans
+            pointer-events-none
+            absolute left-5 right-5 top-5 z-20
+            flex items-start justify-between
+            gap-4
+            md:left-8 md:right-8 md:top-8
+          "
+        >
+          <span
+            className="
+              text-[10px] font-bold
+              uppercase tracking-[0.16em]
+              text-[#535A52]
+            "
+          >
+            VENDRA / PRODUCTO
+          </span>
+
+          <span
+            className="
+              text-[10px] font-semibold
+              tabular-nums tracking-[0.12em]
+              text-[#626961]
+            "
+          >
+            {String(activeIndex + 1).padStart(2, "0")}
+            {" — "}
+            {String(gallery.length).padStart(2, "0")}
+          </span>
+        </div>
+
+        {/* ZONA INTERACTIVA */}
+
+        <div
+          onPointerMove={handlePointerMove}
+          onPointerLeave={resetTilt}
+          className="
+            relative
+            h-[min(108vw,470px)]
+            min-h-[310px]
+            w-full
+            select-none
+            md:h-[620px]
+            lg:h-[720px]
+          "
+          style={{
+            perspective: "1100px",
+          }}
         >
           <motion.div
             className="
-              relative
-              aspect-[0.92]
-              w-full
-              touch-pan-y
+              pointer-events-none
+              absolute inset-[8%]
+              flex items-center justify-center
+              [transform-style:preserve-3d]
             "
-            drag={
-              hasMultiple
-                ? "x"
-                : false
-            }
-            dragConstraints={{
-              left: 0,
-              right: 0,
-            }}
-            dragElastic={0.12}
-            onDragEnd={(
-              _,
-              info
-            ) => {
-              if (
-                Math.abs(
-                  info.offset.x
-                ) < 45
-              ) {
-                return;
-              }
-
-              if (
-                info.offset.x < 0
-              ) {
-                nextImage();
-              } else {
-                previousImage();
-              }
+            style={{
+              rotateX: smoothRotateX,
+              rotateY: smoothRotateY,
+              x: smoothX,
+              y: smoothY,
             }}
           >
             <AnimatePresence
               mode="wait"
               initial={false}
+              custom={direction}
             >
-              <motion.div
-                key={activeImage}
-                className="
-                  absolute
-                  inset-0
-                  flex
-                  items-center
-                  justify-center
-                  p-7
-                "
-                initial={
-                  reduceMotion
-                    ? {
-                        opacity: 0,
-                      }
-                    : {
-                        opacity: 0,
-                        scale: 0.965,
-                        x: 18,
-                      }
-                }
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  x: 0,
-                }}
-                exit={
-                  reduceMotion
-                    ? {
-                        opacity: 0,
-                      }
-                    : {
-                        opacity: 0,
-                        scale: 0.985,
-                        x: -16,
-                      }
-                }
-                transition={{
-                  duration:
-                    reduceMotion
-                      ? commerceDuration.micro
-                      : 0.42,
-                  ease: commerceEase.spatial,
-                }}
-              >
-                <div
-                  className="
-                    relative
-                    h-full
-                    w-full
-                  "
+ <motion.div
+  key={activeImage}
+  custom={direction}
+  variants={imageVariants}
+  initial="initial"
+  animate={{
+    opacity: 1,
+    x: 0,
+    rotate: 0,
+    scale: inspecting ? 1.25 : 1,
+  }}
+  exit="exit"
+  className="
+    absolute inset-0
+    [transform-style:preserve-3d]
+  "
+  transition={{
+    duration: reduceMotion ? 0 : 0.55,
+    ease: EASE,
+  }}
+>
+
+                <motion.div
+                  className="relative h-full w-full"
+                  animate={
+                    reduceMotion || inspecting
+                      ? undefined
+                      : {
+                          y: [0, -7, 0],
+                        }
+                  }
+                  transition={{
+                    duration: 5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
                 >
                   <Image
                     src={activeImage}
-                    alt={`${name} - vista ${
-                      activeIndex + 1
-                    }`}
+                    alt={`${name} — vista ${activeIndex + 1}`}
                     fill
-                    priority
-                    sizes="100vw"
+                    priority={activeIndex === 0}
+                    sizes="
+                      (max-width: 767px) 90vw,
+                      (max-width: 1023px) 56vw,
+                      48vw
+                    "
+                    draggable={false}
                     className="
-                      pointer-events-none
                       select-none
                       object-contain
-                      drop-shadow-[0_28px_36px_rgba(23,22,18,0.13)]
+                      drop-shadow-[0_32px_28px_rgba(32,38,32,0.18)]
                     "
                   />
-                </div>
+                </motion.div>
               </motion.div>
             </AnimatePresence>
           </motion.div>
 
+          {/* Área táctil: solo móvil.
+              touch-pan-y permite el scroll vertical. */}
+
           {hasMultiple && (
-            <>
+            <motion.div
+              aria-label="Desliza horizontalmente para cambiar la vista"
+              className="
+                absolute inset-0 z-10
+                cursor-grab touch-pan-y
+                active:cursor-grabbing
+                md:hidden
+              "
+              drag="x"
+              dragConstraints={{
+                left: 0,
+                right: 0,
+              }}
+              dragElastic={0.12}
+              onDragEnd={(_, info) => {
+                const distance = info.offset.x;
+                const speed = info.velocity.x;
+
+                if (
+                  Math.abs(distance) < 45 &&
+                  Math.abs(speed) < 500
+                ) {
+                  return;
+                }
+
+                if (distance < 0 || speed < -500) {
+                  nextImage();
+                } else {
+                  previousImage();
+                }
+              }}
+            />
+          )}
+
+          {/* Inspección en desktop */}
+
+          <button
+            type="button"
+            onClick={() =>
+              setInspecting((current) => !current)
+            }
+            aria-label={
+              inspecting
+                ? "Restablecer vista"
+                : "Acercar imagen del producto"
+            }
+            aria-pressed={inspecting}
+            className="
+              commerce-sans
+              absolute bottom-7 right-7 z-20
+              hidden h-11 w-11
+              items-center justify-center
+              rounded-full
+              border border-[#3F473E]/10
+              bg-white/75
+              text-[#29312A]
+              backdrop-blur-md
+              transition-colors
+              hover:bg-white
+              md:flex
+            "
+          >
+            <ArrowsOutSimple
+              size={19}
+              weight="regular"
+            />
+          </button>
+
+          {/* Navegación dentro de escena */}
+
+          {hasMultiple && (
+            <div
+              className="
+                absolute bottom-5 left-5
+                z-20 flex items-center gap-2
+                md:bottom-7 md:left-7
+              "
+            >
               <button
                 type="button"
                 onClick={previousImage}
                 aria-label="Vista anterior"
                 className="
-                  absolute
-                  bottom-4
-                  left-4
-                  z-20
-                  flex
-                  h-10
-                  w-10
-                  items-center
-                  justify-center
+                  flex h-11 w-11
+                  items-center justify-center
                   rounded-full
-                  bg-[var(--commerce-paper)]
-                  text-[var(--commerce-ink)]
-                  shadow-[0_8px_24px_rgba(23,22,18,0.08)]
+                  border border-[#29312A]/10
+                  bg-white/80
+                  text-[#29312A]
+                  backdrop-blur-md
+                  transition-colors hover:bg-white
                 "
               >
-                <ArrowLeft
-                  size={17}
-                  weight="regular"
-                />
+                <ArrowLeft size={18} />
               </button>
 
               <button
@@ -245,207 +476,70 @@ export default function ProductGallery({
                 onClick={nextImage}
                 aria-label="Siguiente vista"
                 className="
-                  absolute
-                  bottom-4
-                  right-4
-                  z-20
-                  flex
-                  h-10
-                  w-10
-                  items-center
-                  justify-center
+                  flex h-11 w-11
+                  items-center justify-center
                   rounded-full
-                  bg-[var(--commerce-paper)]
-                  text-[var(--commerce-ink)]
-                  shadow-[0_8px_24px_rgba(23,22,18,0.08)]
+                  border border-[#29312A]/10
+                  bg-white/80
+                  text-[#29312A]
+                  backdrop-blur-md
+                  transition-colors hover:bg-white
                 "
               >
-                <ArrowRight
-                  size={17}
-                  weight="regular"
-                />
+                <ArrowRight size={18} />
               </button>
-
-              <div
-                className="
-                  commerce-sans
-                  absolute
-                  bottom-5
-                  left-1/2
-                  z-20
-                  -translate-x-1/2
-                  text-[0.65rem]
-                  font-[700]
-                  tracking-[0.1em]
-                  text-[var(--commerce-muted)]
-                "
-              >
-                {String(
-                  activeIndex + 1
-                ).padStart(2, "0")}
-                {" / "}
-                {String(
-                  gallery.length
-                ).padStart(2, "0")}
-              </div>
-            </>
+            </div>
           )}
         </div>
+      </div>
 
-        {/* MINIATURAS MÓVIL */}
-        {hasMultiple && (
+      {/* SELECTOR DE VISTAS */}
+
+      {hasMultiple && (
+        <div
+          className="
+            mt-4 flex min-w-0
+            items-center gap-3
+            md:mt-5
+          "
+        >
           <div
             className="
-              mt-3
-              flex
-              snap-x
-              gap-2
-              overflow-x-auto
-              pb-1
-
+              flex min-w-0 flex-1
+              gap-2 overflow-x-auto
+              pb-2
               [scrollbar-width:none]
               [&::-webkit-scrollbar]:hidden
             "
           >
-            {gallery.map(
-              (image, index) => {
-                const selected =
-                  index ===
-                  activeIndex;
-
-                return (
-                  <button
-                    key={`${image}-${index}`}
-                    type="button"
-                    onClick={() =>
-                      selectImage(
-                        index
-                      )
-                    }
-                    aria-label={`Ver vista ${
-                      index + 1
-                    }`}
-                    className={`
-                      relative
-                      aspect-square
-                      w-[72px]
-                      shrink-0
-                      snap-start
-                      overflow-hidden
-                      rounded-[14px]
-                      border
-                      transition-colors
-
-                      ${
-                        selected
-                          ? `
-                              border-[var(--commerce-ink)]
-                            `
-                          : `
-                              border-[var(--commerce-line)]
-                            `
-                      }
-                    `}
-                  >
-                    <div
-                      className="
-                        absolute
-                        inset-0
-                        bg-[#e7e1d7]
-                      "
-                    />
-
-                    <Image
-                      src={image}
-                      alt=""
-                      fill
-                      sizes="72px"
-                      className="
-                        relative
-                        object-contain
-                        p-2
-                      "
-                    />
-                  </button>
-                );
-              }
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ================================================= */}
-      {/* DESKTOP                                           */}
-      {/* ================================================= */}
-
-      <div
-        className="
-          hidden
-          grid-cols-[86px_minmax(0,1fr)]
-          gap-5
-
-          md:grid
-
-          lg:grid-cols-[96px_minmax(0,1fr)]
-          lg:gap-7
-        "
-      >
-        {/* THUMBNAILS */}
-        <div
-          className="
-            flex
-            flex-col
-            gap-3
-          "
-        >
-          {gallery.map(
-            (image, index) => {
-              const selected =
-                index ===
-                activeIndex;
+            {gallery.map((image, index) => {
+              const selected = activeIndex === index;
 
               return (
                 <button
                   key={`${image}-${index}`}
                   type="button"
-
-                  /*
-                    PC:
-                    hover cambia inmediatamente.
-                    click también fija la selección.
-                  */
-                  onMouseEnter={() =>
-                    selectImage(index)
-                  }
-                  onFocus={() =>
-                    selectImage(index)
-                  }
-                  onClick={() =>
-                    selectImage(index)
-                  }
-                  aria-label={`Ver vista ${
-                    index + 1
-                  }`}
+                  onClick={() => selectImage(index)}
+                  onPointerEnter={(event) => {
+                    if (
+                      event.pointerType === "mouse"
+                    ) {
+                      selectImage(index);
+                    }
+                  }}
+                  aria-label={`Ver vista ${index + 1}`}
+                  aria-pressed={selected}
                   className={`
-                    group
-                    relative
-                    aspect-square
-                    w-full
-                    overflow-hidden
-                    border
-                    bg-[#e7e1d7]
-                    transition-all
-                    duration-300
-
+                    group relative
+                    h-[66px] w-[66px]
+                    shrink-0 overflow-hidden
+                    bg-[#EDEDE9]
+                    transition-all duration-300
+                    md:h-[78px] md:w-[78px]
                     ${
                       selected
-                        ? `
-                            border-[var(--commerce-ink)]
-                          `
-                        : `
-                            border-[var(--commerce-line)]
-                            hover:border-[var(--commerce-line-strong)]
-                          `
+                        ? "ring-1 ring-[#30392F]"
+                        : "opacity-65 hover:opacity-100"
                     }
                   `}
                 >
@@ -453,168 +547,46 @@ export default function ProductGallery({
                     src={image}
                     alt=""
                     fill
-                    sizes="96px"
+                    sizes="78px"
                     className="
-                      object-contain
-                      p-2.5
-                      transition-transform
-                      duration-500
-
-                      group-hover:scale-[1.04]
+                      object-contain p-2
+                      transition-transform duration-500
+                      group-hover:scale-105
                     "
                   />
 
                   <span
-                    aria-hidden="true"
                     className={`
-                      absolute
-                      bottom-1.5
-                      left-1/2
-                      h-[2px]
-                      -translate-x-1/2
-                      bg-[var(--commerce-ink)]
-                      transition-all
-                      duration-300
-
+                      absolute bottom-0 left-0
+                      h-[2px] bg-[#30392F]
+                      transition-all duration-300
                       ${
                         selected
-                          ? "w-5 opacity-100"
-                          : "w-0 opacity-0"
+                          ? "w-full"
+                          : "w-0"
                       }
                     `}
                   />
                 </button>
               );
-            }
-          )}
-        </div>
+            })}
+          </div>
 
-        {/* IMAGEN PRINCIPAL */}
-        <div
-          className="
-            relative
-            min-h-[620px]
-            overflow-hidden
-            rounded-[30px_30px_14px_30px]
-            bg-[#e7e1d7]
-
-            lg:min-h-[720px]
-          "
-        >
-          <AnimatePresence
-            mode="wait"
-            initial={false}
+          <span
+            className="
+              commerce-sans
+              hidden shrink-0
+              text-[10px] font-semibold
+              uppercase tracking-[0.12em]
+              text-[var(--commerce-muted)]
+              lg:block
+            "
           >
-            <motion.div
-              key={activeImage}
-              className="
-                absolute
-                inset-0
-                flex
-                items-center
-                justify-center
-                p-12
-
-                lg:p-16
-              "
-              initial={
-                reduceMotion
-                  ? {
-                      opacity: 0,
-                    }
-                  : {
-                      opacity: 0,
-                      scale: 0.975,
-                      y: 10,
-                    }
-              }
-              animate={{
-                opacity: 1,
-                scale: 1,
-                y: 0,
-              }}
-              exit={
-                reduceMotion
-                  ? {
-                      opacity: 0,
-                    }
-                  : {
-                      opacity: 0,
-                      scale: 0.985,
-                      y: -8,
-                    }
-              }
-              transition={{
-                duration:
-                  reduceMotion
-                    ? commerceDuration.micro
-                    : 0.38,
-                ease: commerceEase.spatial,
-              }}
-            >
-              <motion.div
-                className="
-                  relative
-                  h-full
-                  w-full
-                  max-w-[780px]
-                "
-                whileHover={
-                  reduceMotion
-                    ? undefined
-                    : {
-                        scale: 1.018,
-                      }
-                }
-                transition={{
-                  duration: 0.45,
-                  ease: commerceEase.smooth,
-                }}
-              >
-                <Image
-                  src={activeImage}
-                  alt={`${name} - vista ${
-                    activeIndex + 1
-                  }`}
-                  fill
-                  priority
-                  sizes="
-                    (max-width: 1023px) 70vw,
-                    55vw
-                  "
-                  className="
-                    object-contain
-                    drop-shadow-[0_38px_52px_rgba(23,22,18,0.14)]
-                  "
-                />
-              </motion.div>
-            </motion.div>
-          </AnimatePresence>
-
-          {hasMultiple && (
-            <div
-              className="
-                commerce-sans
-                absolute
-                bottom-5
-                right-6
-                text-[0.66rem]
-                font-[700]
-                tracking-[0.12em]
-                text-[var(--commerce-muted)]
-              "
-            >
-              {String(
-                activeIndex + 1
-              ).padStart(2, "0")}
-              {" / "}
-              {String(
-                gallery.length
-              ).padStart(2, "0")}
-            </div>
-          )}
+            Explorar vistas
+          </span>
         </div>
-      </div>
+      )}
     </div>
   );
 }
+

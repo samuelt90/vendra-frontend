@@ -1,23 +1,24 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import {
   AnimatePresence,
   motion,
   useReducedMotion,
 } from "motion/react";
+
 import {
+  ArrowRight,
+  CaretDown,
+  FunnelSimple,
   MagnifyingGlass,
   X,
 } from "@phosphor-icons/react";
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { useSearchParams } from "next/navigation";
 
-import ProductCard from "../products/ProductCard";
-import MobileProductCard from "../products/MobileProductCard";
+import StoreProductStage from "./StoreProductStage";
+import StoreEditorialProducts from "./StoreEditorialProducts";
 
 import {
   commerceProducts,
@@ -25,16 +26,16 @@ import {
 } from "../../data/products";
 
 import {
+  storeCategories,
+  type StoreCategoryId,
+} from "../../data/store-categories";
+
+import {
   commerceDuration,
   commerceEase,
 } from "../../styles/motion";
 
-type CategoryFilter =
-  | "todos"
-  | "audio"
-  | "wearables"
-  | "computacion"
-  | "creadores";
+type CategoryFilter = "todos" | StoreCategoryId;
 
 type CommercialFilter =
   | "all"
@@ -44,60 +45,36 @@ type CommercialFilter =
   | "temporada"
   | "disponibles";
 
+type StorePanel =
+  | "categorias"
+  | "buscar"
+  | "filtros"
+  | null;
+
 const categoryOptions: {
   id: CategoryFilter;
   label: string;
 }[] = [
   {
     id: "todos",
-    label: "Todos",
+    label: "Toda la tecnología",
   },
-  {
-    id: "audio",
-    label: "Audio",
-  },
-  {
-    id: "wearables",
-    label: "Wearables",
-  },
-  {
-    id: "computacion",
-    label: "Computación",
-  },
-  {
-    id: "creadores",
-    label: "Creadores",
-  },
+  ...storeCategories.map((category) => ({
+    id: category.id,
+    label: category.name,
+  })),
 ];
 
 const commercialOptions: {
   id: CommercialFilter;
   label: string;
 }[] = [
-  {
-    id: "all",
-    label: "Todos",
-  },
-  {
-    id: "nuevo",
-    label: "Novedades",
-  },
-  {
-    id: "precio-especial",
-    label: "Precios especiales",
-  },
-  {
-    id: "ultimas-unidades",
-    label: "Últimas unidades",
-  },
-  {
-    id: "temporada",
-    label: "Temporada",
-  },
-  {
-    id: "disponibles",
-    label: "Disponibles",
-  },
+  { id: "all", label: "Todos los productos" },
+  { id: "nuevo", label: "Novedades" },
+  { id: "precio-especial", label: "Precios especiales" },
+  { id: "ultimas-unidades", label: "Últimas unidades" },
+  { id: "temporada", label: "Temporada" },
+  { id: "disponibles", label: "Disponibles" },
 ];
 
 function normalizeText(value: string) {
@@ -108,80 +85,38 @@ function normalizeText(value: string) {
     .trim();
 }
 
-function getInitialCategory(
-  value: string | null
-): CategoryFilter {
-  const allowed: CategoryFilter[] = [
-    "todos",
-    "audio",
-    "wearables",
-    "computacion",
-    "creadores",
-  ];
-
-  if (
-    value &&
-    allowed.includes(value as CategoryFilter)
-  ) {
-    return value as CategoryFilter;
-  }
-
-  return "todos";
+function getCategory(value: string | null): CategoryFilter {
+  return categoryOptions.some((option) => option.id === value)
+    ? (value as CategoryFilter)
+    : "todos";
 }
 
-function getInitialCommercialFilter(
+function getCommercialFilter(
   value: string | null
 ): CommercialFilter {
-  const allowed: CommercialFilter[] = [
-    "all",
-    "nuevo",
-    "precio-especial",
-    "ultimas-unidades",
-    "temporada",
-    "disponibles",
-  ];
-
-  if (
-    value &&
-    allowed.includes(value as CommercialFilter)
-  ) {
-    return value as CommercialFilter;
-  }
-
-  return "all";
+  return commercialOptions.some(
+    (option) => option.id === value
+  )
+    ? (value as CommercialFilter)
+    : "all";
 }
 
 function matchesCategory(
   product: CommerceProduct,
   category: CategoryFilter
 ) {
-  if (category === "todos") {
-    return true;
+  if (category === "todos") return true;
+
+  const productCategory = normalizeText(product.category);
+
+  if (category === "creadores") {
+    return (
+      productCategory === "creadores" ||
+      productCategory === "creador"
+    );
   }
 
-  const productCategory = normalizeText(
-    product.category
-  );
-
-  switch (category) {
-    case "audio":
-      return productCategory === "audio";
-
-    case "wearables":
-      return productCategory === "wearables";
-
-    case "computacion":
-      return productCategory === "computacion";
-
-    case "creadores":
-      return (
-        productCategory === "creadores" ||
-        productCategory === "creador"
-      );
-
-    default:
-      return true;
-  }
+  return productCategory === category;
 }
 
 function matchesCommercialFilter(
@@ -193,30 +128,18 @@ function matchesCommercialFilter(
       return product.badge === "Nuevo";
 
     case "precio-especial":
-      return (
-        product.badge === "Precio especial"
-      );
+      return product.badge === "Precio especial";
 
     case "ultimas-unidades":
-      return (
-        product.badge === "Últimas unidades"
-      );
+      return product.badge === "Últimas unidades";
 
     case "disponibles":
       return normalizeText(
         product.status ?? ""
       ).includes("dispon");
 
-    /*
-      Todavía no existe una propiedad específica
-      "temporada" en CommerceProduct.
-
-      No inventamos datos aquí.
-      Cuando ampliemos products.ts podremos
-      añadir una colección/tag real.
-    */
     case "temporada":
-      return true;
+      return false;
 
     default:
       return true;
@@ -224,632 +147,658 @@ function matchesCommercialFilter(
 }
 
 export default function CommerceStore() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const reduceMotion = useReducedMotion();
 
   const [query, setQuery] = useState("");
+  const [panel, setPanel] = useState<StorePanel>(null);
 
-  const [category, setCategory] =
-    useState<CategoryFilter>(() =>
-      getInitialCategory(
-        searchParams.get("categoria")
-      )
-    );
-
-  const [
-    commercialFilter,
-    setCommercialFilter,
-  ] = useState<CommercialFilter>(() =>
-    getInitialCommercialFilter(
-      searchParams.get("filtro")
-    )
+  const category = getCategory(
+    searchParams.get("categoria")
   );
 
-  /*
-    Si llegamos desde Home mediante otro enlace
-    con searchParams distintos, sincronizamos
-    los filtros con la URL.
-  */
-  useEffect(() => {
-    setCategory(
-      getInitialCategory(
-        searchParams.get("categoria")
-      )
-    );
-
-    setCommercialFilter(
-      getInitialCommercialFilter(
-        searchParams.get("filtro")
-      )
-    );
-  }, [searchParams]);
+  const commercialFilter = getCommercialFilter(
+    searchParams.get("filtro")
+  );
 
   const filteredProducts = useMemo(() => {
-    const normalizedQuery =
-      normalizeText(query);
+    const search = normalizeText(query);
 
-    return commerceProducts.filter(
-      (product) => {
-        const matchesSearch =
-          !normalizedQuery ||
-          normalizeText(product.name).includes(
-            normalizedQuery
-          ) ||
-          normalizeText(
-            product.category
-          ).includes(normalizedQuery) ||
-          normalizeText(
-            product.description
-          ).includes(normalizedQuery);
+    return commerceProducts.filter((product) => {
+      const searchableText = normalizeText(
+        [
+          product.name,
+          product.category,
+          product.description,
+          ...product.features,
+        ].join(" ")
+      );
 
-        return (
-          matchesSearch &&
-          matchesCategory(
-            product,
-            category
-          ) &&
-          matchesCommercialFilter(
-            product,
-            commercialFilter
-          )
-        );
-      }
-    );
-  }, [
-    query,
-    category,
-    commercialFilter,
-  ]);
+      const matchesSearch =
+        !search || searchableText.includes(search);
+
+      return (
+        matchesSearch &&
+        matchesCategory(product, category) &&
+        matchesCommercialFilter(
+          product,
+          commercialFilter
+        )
+      );
+    });
+  }, [query, category, commercialFilter]);
 
   const activeCategory =
     categoryOptions.find(
       (option) => option.id === category
+    )?.label ?? "Toda la tecnología";
+
+  const hasFilters =
+    category !== "todos" ||
+    commercialFilter !== "all" ||
+    query.trim().length > 0;
+
+  useEffect(() => {
+    if (!panel) return;
+
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setPanel(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener(
+        "keydown",
+        handleEscape
+      );
+    };
+  }, [panel]);
+
+  function changeFilters(
+    nextCategory: CategoryFilter,
+    nextFilter: CommercialFilter
+  ) {
+    const params = new URLSearchParams(
+      searchParams.toString()
     );
 
-  const activeCommercial =
-    commercialOptions.find(
-      (option) =>
-        option.id === commercialFilter
+    if (nextCategory === "todos") {
+      params.delete("categoria");
+    } else {
+      params.set("categoria", nextCategory);
+    }
+
+    if (nextFilter === "all") {
+      params.delete("filtro");
+    } else {
+      params.set("filtro", nextFilter);
+    }
+
+    const suffix = params.toString();
+
+    router.replace(
+      `/comercio/tienda${suffix ? `?${suffix}` : ""}`,
+      { scroll: false }
     );
+
+    setPanel(null);
+  }
+
+  function clearFilters() {
+    setQuery("");
+    changeFilters("todos", "all");
+  }
+
+  function scrollToProducts() {
+    document
+      .getElementById("commerce-store-products")
+      ?.scrollIntoView({
+        behavior: reduceMotion ? "instant" : "smooth",
+        block: "start",
+      });
+  }
+
+  function exploreCategory(categoryId: StoreCategoryId) {
+    setQuery("");
+    changeFilters(categoryId, "all");
+
+    scrollToProducts();
+  }
 
   return (
     <main
       className="
-        min-h-screen
-        bg-[var(--commerce-paper)]
+        min-h-svh
+        bg-[var(--commerce-bg)]
         text-[var(--commerce-ink)]
       "
     >
-      {/* ===================================== */}
-      {/* INTRO                                 */}
-      {/* ===================================== */}
+      {/* ENCABEZADO */}
 
-      <section
+      <header
         className="
-          border-b
-          border-[var(--commerce-line)]
+          mx-auto max-w-[1600px]
           px-[var(--commerce-page-x)]
-          pb-10
-          pt-14
-
-          md:pb-14
-          md:pt-20
+          pb-7 pt-[105px]
+          md:pb-12 md:pt-[150px]
         "
       >
-        <div
+        <motion.p
+          initial={{
+            opacity: 0,
+            y: reduceMotion ? 0 : 12,
+          }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: commerceDuration.interface,
+            ease: commerceEase.enter,
+          }}
           className="
-            mx-auto
-            w-full
-            max-w-[1600px]
+            commerce-sans
+            text-[0.66rem] font-bold
+            uppercase tracking-[0.16em]
+            text-[var(--commerce-muted)]
           "
         >
-          <motion.p
-            className="
-              commerce-label
-              text-[var(--commerce-muted)]
-            "
+          Vendra / Tienda
+        </motion.p>
+
+        <div className="overflow-hidden">
+          <motion.h1
             initial={
               reduceMotion
                 ? { opacity: 0 }
-                : {
-                    opacity: 0,
-                    y: 8,
-                  }
+                : { y: "110%" }
             }
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{
-              duration:
-                commerceDuration.interface,
-              ease: commerceEase.enter,
+              duration: reduceMotion
+                ? commerceDuration.micro
+                : 0.7,
+              ease: commerceEase.spatial,
             }}
+            className="
+              commerce-display
+              mt-2
+              text-[clamp(3.8rem,14vw,8.5rem)]
+              leading-[0.88]
+              tracking-[-0.07em]
+            "
           >
-            Tienda
-          </motion.p>
+            Explora.
+          </motion.h1>
+        </div>
+      </header>
 
-          <div className="overflow-hidden">
-            <motion.h1
+      {/* CONTROLES DE TIENDA */}
+
+      <section
+        className="
+          border-y
+          border-[var(--commerce-line)]
+        "
+      >
+        <div
+          className="
+            mx-auto flex max-w-[1600px]
+            items-center gap-3
+            px-[var(--commerce-page-x)]
+            py-3 md:gap-6 md:py-5
+          "
+        >
+          <button
+            type="button"
+            onClick={() => setPanel("categorias")}
+            aria-label={`Cambiar categoría. Actual: ${activeCategory}`}
+            aria-haspopup="dialog"
+            className="
+              commerce-sans
+              flex min-h-11 min-w-0 flex-1
+              items-center justify-between
+              gap-2 text-left
+            "
+          >
+            <span className="min-w-0">
+              <span
+                className="
+                  block text-[0.6rem] font-bold
+                  uppercase tracking-[0.12em]
+                  text-[var(--commerce-muted)]
+                "
+              >
+                Colección
+              </span>
+
+              <span
+                className="
+                  block truncate
+                  text-[0.88rem] font-bold
+                  tracking-[-0.035em]
+                  md:text-[1rem]
+                "
+              >
+                {activeCategory}
+              </span>
+            </span>
+
+            <CaretDown
+              size={17}
+              className="shrink-0"
+            />
+          </button>
+
+          <div
+            className="
+              h-8 w-px
+              bg-[var(--commerce-line)]
+            "
+          />
+
+          <button
+            type="button"
+            onClick={() => setPanel("buscar")}
+            aria-label="Buscar productos"
+            aria-haspopup="dialog"
+            className="
+              flex h-11 w-11 shrink-0
+              items-center justify-center
+            "
+          >
+            <MagnifyingGlass size={22} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setPanel("filtros")}
+            aria-label="Filtrar productos"
+            aria-haspopup="dialog"
+            className="
+              relative flex h-11 w-11 shrink-0
+              items-center justify-center
+            "
+          >
+            <FunnelSimple size={22} />
+
+            {commercialFilter !== "all" && (
+              <span
+                className="
+                  absolute right-0 top-0
+                  h-2 w-2 rounded-full
+                  bg-[var(--commerce-accent)]
+                "
+              />
+            )}
+          </button>
+        </div>
+      </section>
+
+      {/* CATÁLOGO: CARRUSEL + ESCAPARATE */}
+
+      <section
+        className="
+          mx-auto max-w-[1600px]
+          px-[var(--commerce-page-x)]
+          pb-32 pt-5 md:pb-24 md:pt-9
+        "
+      >
+        <StoreProductStage
+          categories={storeCategories}
+          onExplore={exploreCategory}
+        />
+
+        <StoreEditorialProducts
+          products={filteredProducts}
+          onClearFilters={clearFilters}
+        />
+
+        {hasFilters && (
+          <div
+            className="
+              mt-10 flex items-center
+              justify-between gap-4
+              border-t border-[var(--commerce-line)]
+              pt-5
+            "
+          >
+            <p
+              aria-live="polite"
               className="
-                commerce-display
-                mt-3
-                max-w-[8ch]
-                text-[clamp(4rem,15vw,7rem)]
-                leading-[0.84]
-                tracking-[-0.065em]
-
-                md:max-w-none
-                md:text-[clamp(5.5rem,8vw,9rem)]
+                commerce-sans text-xs
+                text-[var(--commerce-muted)]
               "
+            >
+              {filteredProducts.length}{" "}
+              {filteredProducts.length === 1
+                ? "producto encontrado"
+                : "productos encontrados"}
+            </p>
+
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="
+                commerce-sans text-xs
+                font-bold underline
+                underline-offset-4
+              "
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* PANEL DE CATEGORÍAS, BÚSQUEDA Y FILTROS */}
+
+      <AnimatePresence>
+        {panel && (
+          <div
+            className="
+              fixed inset-0 z-[120]
+              flex items-end justify-center
+              md:items-center
+            "
+          >
+            <motion.button
+              type="button"
+              aria-label="Cerrar selector"
+              onClick={() => setPanel(null)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="
+                absolute inset-0 bg-black/40
+              "
+            />
+
+            <motion.section
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="commerce-store-panel-title"
               initial={
                 reduceMotion
                   ? { opacity: 0 }
-                  : {
-                      y: "105%",
-                    }
+                  : { opacity: 0, y: 65 }
               }
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={
+                reduceMotion
+                  ? { opacity: 0 }
+                  : { opacity: 0, y: 45 }
+              }
               transition={{
-                delay:
-                  reduceMotion ? 0 : 0.06,
-                duration:
-                  reduceMotion
-                    ? commerceDuration.micro
-                    : 0.72,
-                ease:
-                  commerceEase.spatial,
+                duration: reduceMotion
+                  ? commerceDuration.micro
+                  : commerceDuration.interface,
+                ease: commerceEase.spatial,
               }}
+              className="
+                relative z-10
+                max-h-[85svh] w-full
+                overflow-y-auto
+                rounded-t-[28px]
+                bg-[var(--commerce-paper)]
+                px-6 pt-6
+                pb-[calc(1.5rem+env(safe-area-inset-bottom))]
+                shadow-2xl
+                md:max-w-[530px]
+                md:rounded-[28px] md:p-9
+              "
             >
-              Encuentra tu producto.
-            </motion.h1>
-          </div>
-
-          <motion.p
-            className="
-              commerce-sans
-              mt-6
-              max-w-[42rem]
-              text-[0.9rem]
-              leading-[1.6]
-              tracking-[-0.025em]
-              text-[var(--commerce-ink-soft)]
-
-              md:text-[1rem]
-            "
-            initial={{
-              opacity: 0,
-              y: reduceMotion ? 0 : 8,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              delay:
-                reduceMotion ? 0 : 0.14,
-              duration:
-                commerceDuration.interface,
-              ease: commerceEase.enter,
-            }}
-          >
-            Explora los productos disponibles,
-            revisa precios y abre cada producto
-            para ver todos sus detalles.
-          </motion.p>
-        </div>
-      </section>
-
-      {/* ===================================== */}
-      {/* CONTROLES                             */}
-      {/* ===================================== */}
-
-      <section
-        className="
-          sticky
-          top-0
-          z-30
-          border-b
-          border-[var(--commerce-line)]
-          bg-[color:var(--commerce-paper)]
-        "
-      >
-        <div
-          className="
-            mx-auto
-            w-full
-            max-w-[1600px]
-            px-[var(--commerce-page-x)]
-            py-4
-
-            md:py-5
-          "
-        >
-          {/* BUSCADOR */}
-
-          <div
-            className="
-              flex
-              h-13
-              items-center
-              border-b
-              border-[var(--commerce-line-strong)]
-            "
-          >
-            <MagnifyingGlass
-              size={20}
-              weight="regular"
-              className="
-                shrink-0
-                text-[var(--commerce-muted)]
-              "
-            />
-
-            <input
-              type="search"
-              value={query}
-              onChange={(event) =>
-                setQuery(event.target.value)
-              }
-              placeholder="Buscar productos"
-              aria-label="Buscar productos"
-              className="
-                commerce-sans
-                h-full
-                min-w-0
-                flex-1
-                bg-transparent
-                px-3
-                text-[0.9rem]
-                font-[550]
-                tracking-[-0.025em]
-                outline-none
-
-                placeholder:text-[var(--commerce-muted)]
-              "
-            />
-
-            {query && (
-              <button
-                type="button"
-                aria-label="Limpiar búsqueda"
-                onClick={() => setQuery("")}
-                className="
-                  flex
-                  h-10
-                  w-10
-                  items-center
-                  justify-center
-                  text-[var(--commerce-muted)]
-                "
-              >
-                <X
-                  size={17}
-                  weight="regular"
-                />
-              </button>
-            )}
-          </div>
-
-          {/* CATEGORÍAS */}
-
-          <div
-            className="
-              mt-4
-              flex
-              gap-2
-              overflow-x-auto
-              pb-1
-
-              [scrollbar-width:none]
-              [&::-webkit-scrollbar]:hidden
-            "
-          >
-            {categoryOptions.map(
-              (option) => {
-                const selected =
-                  category === option.id;
-
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() =>
-                      setCategory(option.id)
-                    }
-                    className={`
-                      commerce-sans
-                      h-10
-                      shrink-0
-                      rounded-full
-                      border
-                      px-4
-                      text-[0.76rem]
-                      font-[650]
-                      tracking-[-0.02em]
-                      transition-colors
-                      duration-200
-
-                      ${
-                        selected
-                          ? `
-                              border-[var(--commerce-ink)]
-                              bg-[var(--commerce-ink)]
-                              text-[var(--commerce-paper)]
-                            `
-                          : `
-                              border-[var(--commerce-line-strong)]
-                              text-[var(--commerce-ink)]
-                            `
-                      }
-                    `}
-                  >
-                    {option.label}
-                  </button>
-                );
-              }
-            )}
-          </div>
-
-          {/* FILTROS COMERCIALES */}
-
-          <div
-            className="
-              mt-2
-              flex
-              gap-2
-              overflow-x-auto
-              pb-1
-
-              [scrollbar-width:none]
-              [&::-webkit-scrollbar]:hidden
-            "
-          >
-            {commercialOptions.map(
-              (option) => {
-                const selected =
-                  commercialFilter ===
-                  option.id;
-
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() =>
-                      setCommercialFilter(
-                        option.id
-                      )
-                    }
-                    className={`
-                      commerce-sans
-                      h-9
-                      shrink-0
-                      rounded-full
-                      border
-                      px-3.5
-                      text-[0.71rem]
-                      font-[620]
-                      tracking-[-0.02em]
-
-                      ${
-                        selected
-                          ? `
-                              border-[var(--commerce-accent)]
-                              text-[var(--commerce-accent)]
-                            `
-                          : `
-                              border-transparent
-                              text-[var(--commerce-muted)]
-                            `
-                      }
-                    `}
-                  >
-                    {option.label}
-                  </button>
-                );
-              }
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ===================================== */}
-      {/* RESULTADOS                            */}
-      {/* ===================================== */}
-
-      <section
-        className="
-          px-[var(--commerce-page-x)]
-          pb-24
-          pt-8
-
-          md:pb-32
-          md:pt-12
-        "
-      >
-        <div
-          className="
-            mx-auto
-            w-full
-            max-w-[1600px]
-          "
-        >
-          <div
-            className="
-              mb-6
-              flex
-              items-end
-              justify-between
-              gap-5
-
-              md:mb-10
-            "
-          >
-            <div>
-              <p
-                className="
-                  commerce-sans
-                  text-[0.68rem]
-                  font-[650]
-                  uppercase
-                  tracking-[0.1em]
-                  text-[var(--commerce-muted)]
-                "
-              >
-                {activeCategory?.label}
-                {commercialFilter !==
-                  "all" &&
-                  ` · ${activeCommercial?.label}`}
-              </p>
-
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={
-                    filteredProducts.length
-                  }
-                  initial={{
-                    opacity: 0,
-                    y: 5,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    y: -5,
-                  }}
-                  transition={{
-                    duration:
-                      commerceDuration.fast,
-                    ease:
-                      commerceEase.enter,
-                  }}
-                  className="
-                    commerce-display
-                    mt-2
-                    text-[2.3rem]
-                    leading-none
-                    tracking-[-0.05em]
-
-                    md:text-[3rem]
-                  "
-                >
-                  {filteredProducts.length}{" "}
-                  {filteredProducts.length === 1
-                    ? "producto"
-                    : "productos"}
-                </motion.p>
-              </AnimatePresence>
-            </div>
-          </div>
-
-          {filteredProducts.length > 0 ? (
-            <>
-              {/* MOBILE */}
-
-              <motion.div
-                layout
-                className="
-                  grid
-                  grid-cols-2
-                  gap-3
-
-                  md:hidden
-                "
-              >
-                <AnimatePresence mode="popLayout">
-                  {filteredProducts.map(
-                    (product, index) => (
-                      <MobileProductCard
-                        key={product.id}
-                        product={product}
-                        index={index}
-                      />
-                    )
-                  )}
-                </AnimatePresence>
-              </motion.div>
-
-              {/* DESKTOP */}
-
               <div
                 className="
-                  hidden
-                  grid-cols-2
-                  gap-6
-
-                  md:grid
-                  xl:grid-cols-3
+                  mb-7 flex items-center
+                  justify-between
                 "
               >
-                {filteredProducts.map(
-                  (product, index) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      index={index}
-                    />
-                  )
-                )}
+                <p
+                  className="
+                    commerce-sans
+                    text-[0.65rem] font-bold
+                    uppercase tracking-[0.13em]
+                    text-[var(--commerce-muted)]
+                  "
+                >
+                  Vendra / Catálogo
+                </p>
+
+                <button
+                  type="button"
+                  aria-label="Cerrar"
+                  onClick={() => setPanel(null)}
+                  className="
+                    flex h-10 w-10
+                    items-center justify-center
+                    rounded-full border
+                    border-[var(--commerce-line)]
+                  "
+                >
+                  <X size={19} />
+                </button>
               </div>
-            </>
-          ) : (
-            <motion.div
-              initial={{
-                opacity: 0,
-                y: reduceMotion ? 0 : 12,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              className="
-                border-t
-                border-[var(--commerce-line)]
-                py-20
-              "
-            >
-              <p
-                className="
-                  commerce-display
-                  max-w-[9ch]
-                  text-[3rem]
-                  leading-[0.88]
-                  tracking-[-0.055em]
 
-                  md:text-[5rem]
+              <h2
+                id="commerce-store-panel-title"
+                className="
+                  commerce-display mb-7
+                  text-[clamp(2.8rem,11vw,4rem)]
+                  leading-[0.95]
+                  tracking-[-0.06em]
                 "
               >
-                No encontramos coincidencias.
-              </p>
+                {panel === "categorias"
+                  ? "Explora por categoría."
+                  : panel === "buscar"
+                    ? "¿Qué buscas?"
+                    : "Refina tu búsqueda."}
+              </h2>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setQuery("");
-                  setCategory("todos");
-                  setCommercialFilter("all");
-                }}
-                className="
-                  commerce-sans
-                  mt-7
-                  border-b
-                  border-[var(--commerce-line-strong)]
-                  pb-1
-                  text-[0.84rem]
-                  font-[650]
-                "
-              >
-                Ver todos los productos
-              </button>
-            </motion.div>
-          )}
-        </div>
-      </section>
+              {/* CATEGORÍAS */}
+
+              {panel === "categorias" && (
+                <div
+                  className="
+                    border-t
+                    border-[var(--commerce-line)]
+                  "
+                >
+                  {categoryOptions.map((item) => {
+                    const selected =
+                      item.id === category;
+
+                    const count =
+                      commerceProducts.filter(
+                        (product) =>
+                          matchesCategory(
+                            product,
+                            item.id
+                          )
+                      ).length;
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() =>
+                          changeFilters(
+                            item.id,
+                            commercialFilter
+                          )
+                        }
+                        className="
+                          flex min-h-[68px] w-full
+                          items-center justify-between
+                          gap-4 border-b
+                          border-[var(--commerce-line)]
+                          py-3 text-left
+                        "
+                      >
+                        <span
+                          className={`
+                            commerce-display
+                            text-[1.9rem]
+                            leading-none
+                            tracking-[-0.045em]
+                            ${
+                              selected
+                                ? "text-[var(--commerce-ink)]"
+                                : "text-[var(--commerce-ink-soft)]"
+                            }
+                          `}
+                        >
+                          {item.label}
+                        </span>
+
+                        <span
+                          className="
+                            commerce-sans flex shrink-0
+                            items-center gap-3
+                            text-xs
+                            text-[var(--commerce-muted)]
+                          "
+                        >
+                          {String(count).padStart(2, "0")}
+                          <ArrowRight size={16} />
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* BUSCAR */}
+
+              {panel === "buscar" && (
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    setPanel(null);
+                    scrollToProducts();
+                  }}
+                >
+                  <div
+                    className="
+                      flex items-center gap-3
+                      border-b
+                      border-[var(--commerce-line-strong)]
+                      pb-3
+                    "
+                  >
+                    <MagnifyingGlass size={22} />
+
+                    <input
+                      autoFocus
+                      type="search"
+                      value={query}
+                      onChange={(event) =>
+                        setQuery(event.target.value)
+                      }
+                      placeholder="Nombre o tipo de producto"
+                      aria-label="Buscar en el catálogo"
+                      className="
+                        commerce-sans min-w-0 flex-1
+                        bg-transparent text-[1rem]
+                        outline-none
+                      "
+                    />
+
+                    {query && (
+                      <button
+                        type="button"
+                        aria-label="Borrar texto"
+                        onClick={() => setQuery("")}
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="
+                      commerce-sans mt-7
+                      flex min-h-12 w-full
+                      items-center justify-center
+                      gap-3 rounded-full
+                      bg-[var(--commerce-ink)]
+                      text-sm font-bold
+                      text-[var(--commerce-paper)]
+                    "
+                  >
+                    Ver resultados
+                    <ArrowRight size={18} />
+                  </button>
+                </form>
+              )}
+
+              {/* FILTROS COMERCIALES */}
+
+              {panel === "filtros" && (
+                <div
+                  className="
+                    border-t
+                    border-[var(--commerce-line)]
+                  "
+                >
+                  {commercialOptions.map((item) => {
+                    const selected =
+                      item.id === commercialFilter;
+
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() =>
+                          changeFilters(
+                            category,
+                            item.id
+                          )
+                        }
+                        className="
+                          commerce-sans
+                          flex min-h-14 w-full
+                          items-center justify-between
+                          border-b
+                          border-[var(--commerce-line)]
+                          text-left text-[0.9rem]
+                          font-semibold
+                        "
+                      >
+                        {item.label}
+
+                        <span
+                          className={`
+                            h-[9px] w-[9px]
+                            rounded-full
+                            ${
+                              selected
+                                ? "bg-[var(--commerce-accent)]"
+                                : "border border-[var(--commerce-line-strong)]"
+                            }
+                          `}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </motion.section>
+          </div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
+
