@@ -1,123 +1,108 @@
+
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useState } from "react";
 
 import HeroContent from "./HeroContent";
 import HeroScene from "./HeroScene";
 
-gsap.registerPlugin(ScrollTrigger);
+import { commerceProducts } from "../../data/products";
+
+// Cinco productos reales para el Hero.
+// El catálogo completo permanece en /comercio/tienda.
+const featuredProducts = commerceProducts.slice(0, 5);
 
 export default function StoreHero() {
-  const trackRef = useRef<HTMLElement>(null);
-  const stickyRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  useLayoutEffect(() => {
-    const track = trackRef.current;
-    const sticky = stickyRef.current;
-    const content = contentRef.current;
+  const activeProduct = featuredProducts[activeIndex];
 
-    if (!track || !sticky || !content) return;
-
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    if (reduceMotion) return;
-
-    const context = gsap.context(() => {
-      const timeline = gsap.timeline({
-        scrollTrigger: {
-          trigger: track,
-          start: "top top",
-          end: "bottom bottom",
-          scrub: 0.8,
-          invalidateOnRefresh: true,
-        },
-      });
-
-      timeline
-        .to(
-          content,
-          {
-            yPercent: -6,
-            opacity: 0.78,
-            ease: "none",
-          },
-          0.2
-        )
-        .to(
-          sticky,
-          {
-            scale: 0.992,
-            ease: "none",
-          },
-          0.45
-        );
-    }, track);
-
-    return () => {
-      context.revert();
-    };
-  }, []);
+  if (!activeProduct) return null;
 
   return (
     <section
-      ref={trackRef}
-      data-commerce-hero-track
+      id="comercio-hero"
       className="
-        relative
-        h-[132svh]
+        relative isolate
+        min-w-0 overflow-hidden
         bg-[var(--commerce-bg)]
-        md:h-[138svh]
+        text-[var(--commerce-ink)]
       "
     >
+      {/* Ambiente del Hero */}
+
       <div
-        ref={stickyRef}
+        aria-hidden="true"
         className="
-          sticky
-          top-0
-          h-[100svh]
-          overflow-hidden
+          pointer-events-none
+          absolute right-[-18%] top-[25%]
+          h-[440px] w-[440px]
+          rounded-full
+          bg-[var(--commerce-accent)]
+          opacity-[0.045]
+          blur-[110px]
+          md:right-[3%] md:top-[10%]
+          md:h-[650px] md:w-[650px]
+        "
+      />
+
+      <div
+        className="
+          relative mx-auto
+          grid w-full max-w-[1600px]
+          min-w-0
+          grid-cols-1
+          gap-4
+          px-[var(--commerce-page-x)]
+          pb-12 pt-28
+          sm:pt-32
+          md:min-h-[min(900px,100svh)]
+          md:grid-cols-12
+          md:items-center
+          md:gap-6
+          md:pb-16
+          md:pt-32
+          lg:gap-10
         "
       >
- {/* ESCENA DE PRODUCTOS */}
-<div
-  className="
-    absolute
-    inset-0
-    overflow-hidden
+        {/* Mensaje comercial */}
 
-    md:bottom-auto
-    md:h-[56svh]
-  "
->
-  <HeroScene />
-</div>
+        <div
+          className="
+            relative z-20 min-w-0
+            md:col-span-6
+            lg:col-span-6
+          "
+        >
+          <HeroContent />
+        </div>
 
-{/* CONTENIDO EDITORIAL */}
-<div
-  ref={contentRef}
-  className="
-    absolute
-    inset-x-0
-    top-[clamp(5.7rem,14svh,7.5rem)]
-    z-20
-    h-auto
-    will-change-transform
+        {/* Producto protagonista + selector */}
 
-    md:top-auto
-    md:bottom-[clamp(1.5rem,4svh,3.5rem)]
-    md:h-auto
-  "
->
-  <HeroContent />
-</div>
-
+        <div
+          className="
+            relative z-10 min-w-0
+            md:col-span-6
+            lg:col-span-6
+          "
+        >
+          <HeroScene
+            products={featuredProducts}
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+          />
+        </div>
       </div>
+
+      {/* Línea de transición */}
+
+      <div
+        aria-hidden="true"
+        className="
+          absolute inset-x-0 bottom-0
+          h-px bg-[var(--commerce-line)]
+        "
+      />
     </section>
   );
 }
-
